@@ -1,17 +1,19 @@
 ﻿namespace Repository.Models
 {
-    public abstract class Service_Personnel
+    public class Employee
     {
         public int Id { get; set; }
+        public int PinCode { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public int Age { get; set; }
         public string Gender { get; set; }
-        public int PositionHeld { get; set; }
+        public string PositionHeld { get; set; }
 
-        public Service_Personnel(int id, string firstName, string lastName, int age, string gender, int positionHeld)
+        public Employee(int id, int pinCode, string firstName, string lastName, int age, string gender, string positionHeld)
         {
             Id = id;
+            PinCode = pinCode;
             FirstName = firstName;
             LastName = lastName;
             Age = age;

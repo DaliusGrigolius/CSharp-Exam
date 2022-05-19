@@ -10,5 +10,10 @@
             Name = name;
             CurrentPrice = currentPrice;
         }
+
+        public override string ToString()
+        {
+            return " ";
+        }
     }
 }

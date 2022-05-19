@@ -1,0 +1,20 @@
+[
+    {
+      "Id": 112233,
+      "PinCode": 1234,
+      "FirstName": "Ieva",
+	  "LastName": "Pirmutė",
+	  "Age": 18,
+	  "Gender": "Female",
+	  "PositionHeld": "Waitress"
+    },
+    {
+      "Id": 223344,
+      "PinCode": 2345,
+      "FirstName": "Adomas",
+	  "LastName": "Pirmasis",
+	  "Age": 19,
+	  "Gender": "Male",
+	  "PositionHeld": "Waiter"
+    }
+ ]

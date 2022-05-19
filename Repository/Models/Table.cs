@@ -1,9 +1,22 @@
-﻿namespace Repository.Models
+﻿using System;
+using System.Collections.Generic;
+
+namespace Repository.Models
 {
     public class Table
     {
-        public int Id { get; set; }
+        public int Number { get; set; }
         public int Seating { get; set; }
-        public bool Status { get; set; } = false;
+        public bool Occupied { get; set; } = false;
+        public List<Order> Orders { get; set; }
+        public DateTime Reserved { get; set; }
+        public DateTime Freed { get; set; }
+
+        public Table(int number, int seating, bool occupied)
+        {
+            Number = number;
+            Seating = seating;
+            Occupied = occupied;
+        }
     }
 }
