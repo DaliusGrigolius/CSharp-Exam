@@ -2,6 +2,7 @@
 using Repository;
 using Repository.DataAccess;
 using Repository.Models;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -17,12 +18,17 @@ namespace Restaurant_System
         readonly string filePath;
         readonly string foodListFilePath;
         readonly string drinksListFilePath;
+        private int foodQuantityCounter = 1;
+        private int drinkQuantityCounter = 1;
         readonly IEmployeeService _employeeService;
         readonly IEmployeeRepo _employeeRepo;
         readonly IProductRepo _productRepo;
         readonly List<Employee> employees;
         Employee currentEmployee;
         private List<Table> TableList;
+        List<Product> drinksList;
+        List<Product> foodList;
+
 
         public Form1()
         {
@@ -34,6 +40,8 @@ namespace Restaurant_System
             _employeeService = new EmployeeService();
             employees = _employeeRepo.RetrieveEmployees();
             _productRepo = new ProductRepo();
+            drinksList = _productRepo.RetrieveProducts(drinksListFilePath, false);
+            foodList = _productRepo.RetrieveProducts(foodListFilePath);
             CreateTables();
             ChangeLoginPosition();
         }
@@ -66,59 +74,59 @@ namespace Restaurant_System
             };
         }
 
-        private void Table1Button_Click(object sender, System.EventArgs e)
+        private void Table1Button_Click(object sender, EventArgs e)
         {
             TableList[0].Occupied = true;
             Table1Button.BackColor = Color.MistyRose;
             //Table1Button.Enabled = false;
         }
 
-        private void Table2Button_Click(object sender, System.EventArgs e)
+        private void Table2Button_Click(object sender, EventArgs e)
         {
 
         }
 
-        private void Table3Button_Click(object sender, System.EventArgs e)
+        private void Table3Button_Click(object sender, EventArgs e)
         {
 
         }
 
-        private void Table4Button_Click(object sender, System.EventArgs e)
+        private void Table4Button_Click(object sender, EventArgs e)
         {
 
         }
 
-        private void Table5Button_Click(object sender, System.EventArgs e)
+        private void Table5Button_Click(object sender, EventArgs e)
         {
 
         }
 
-        private void Table6Button_Click(object sender, System.EventArgs e)
+        private void Table6Button_Click(object sender, EventArgs e)
         {
 
         }
 
-        private void Table7Button_Click(object sender, System.EventArgs e)
+        private void Table7Button_Click(object sender, EventArgs e)
         {
 
         }
 
-        private void Table8Button_Click(object sender, System.EventArgs e)
+        private void Table8Button_Click(object sender, EventArgs e)
         {
 
         }
 
-        private void Table9Button_Click(object sender, System.EventArgs e)
+        private void Table9Button_Click(object sender, EventArgs e)
         {
 
         }
 
-        private void Table10Button_Click(object sender, System.EventArgs e)
+        private void Table10Button_Click(object sender, EventArgs e)
         {
 
         }
 
-        private void ConfirmLoginButton_Click(object sender, System.EventArgs e)
+        private void ConfirmLoginButton_Click(object sender, EventArgs e)
         {
             ExecuteValidation();
         }
@@ -137,7 +145,6 @@ namespace Restaurant_System
                     if (isValid)
                     {
                         currentEmployee = employees.Single(i => i.Id == id);
-                        LoggedInAsTextBox.Text = $"{currentEmployee.FirstName} {currentEmployee.LastName}";
                         ShowApp();
                         FillFoodList();
                         FillDrinksList();
@@ -160,24 +167,26 @@ namespace Restaurant_System
 
         private void FillDrinksList()
         {
-            List<Product> drinksList = _productRepo.RetrieveProducts(drinksListFilePath, false);
             for (int i = 0; i < drinksList.Count; i++)
             {
-                DrinksListComboBox.Items.Add($"{drinksList[i].Name} {drinksList[i].CurrentPrice};\r\n");
+                DrinksListComboBox.Items.Add($"\"{ drinksList[i].Name }\" - { drinksList[i].CurrentPrice }Eu");
             }
         }
 
         private void FillFoodList()
         {
-            List<Product> foodList = _productRepo.RetrieveProducts(foodListFilePath);
             for (int i = 0; i < foodList.Count; i++)
             {
-                FoodListComboBox.Items.Add($"{foodList[i].Name} {foodList[i].CurrentPrice};\r\n");
+                FoodListComboBox.Items.Add($"\"{ foodList[i].Name }\" - { foodList[i].CurrentPrice }Eu");
             }
         }
 
         private void ShowApp()
         {
+            LoggedInAsTextBox.Text = $"{ currentEmployee.FirstName } { currentEmployee.LastName }";
+            FoodQuantityTextBox.Text = foodQuantityCounter.ToString();
+            DrinkQuantityTextBox.Text = drinkQuantityCounter.ToString();
+
             LogoPictureBox.Location = new Point(-8, 6);
             LoginLabel.Visible = false;
             IdLabel.Visible = false;
@@ -200,7 +209,7 @@ namespace Restaurant_System
             Table9Button.Visible = true;
             Table10Button.Visible = true;
             TableDetailsLabel.Visible = true;
-            OrderedProductsListBox.Visible = true;
+            OrderedProductsTextBox.Visible = true;
             RemoveSelectedItemButton.Visible = true;
             RemoveAllItemsButton.Visible = true;
             FoodLabel.Visible = true;
@@ -227,9 +236,88 @@ namespace Restaurant_System
             ExecutePaymentButton.Visible = true;
         }
 
-        private void LogOutButton_Click(object sender, System.EventArgs e)
+        private void LogOutButton_Click(object sender, EventArgs e)
         {
             this.Close();
         }
+
+        private void FoodQuantityAddButton_Click(object sender, EventArgs e)
+        {
+            if (foodQuantityCounter > 9)
+            {
+                FoodQuantityTextBox.Text = foodQuantityCounter.ToString();
+            }
+            else
+            {
+                foodQuantityCounter++;
+                FoodQuantityTextBox.Text = foodQuantityCounter.ToString();
+            }
+        }
+
+        private void FoodQuantitySubtractButton_Click(object sender, EventArgs e)
+        {
+            if(foodQuantityCounter < 2)
+            {
+                FoodQuantityTextBox.Text = foodQuantityCounter.ToString();
+            }
+            else
+            {
+                foodQuantityCounter--;
+                FoodQuantityTextBox.Text = foodQuantityCounter.ToString();
+            }
+        }
+
+        private void DrinkQuantityAddButton_Click(object sender, EventArgs e)
+        {
+            if (drinkQuantityCounter > 9)
+            {
+                DrinkQuantityTextBox.Text = drinkQuantityCounter.ToString();
+            }
+            else
+            {
+                drinkQuantityCounter++;
+                DrinkQuantityTextBox.Text = drinkQuantityCounter.ToString();
+            }
+        }
+
+        private void DrinkQuantitySubtractButton_Click(object sender, EventArgs e)
+        {
+            if (drinkQuantityCounter < 2)
+            {
+                DrinkQuantityTextBox.Text = drinkQuantityCounter.ToString();
+            }
+            else
+            {
+                drinkQuantityCounter--;
+                DrinkQuantityTextBox.Text = drinkQuantityCounter.ToString();
+            }
+        }
+
+        private void AddFoodButton_Click(object sender, EventArgs e)
+        {
+            if(FoodListComboBox.SelectedItem != null)
+            {
+                int indexNumber = FoodListComboBox.SelectedIndex;
+                int quantity = Convert.ToInt32(FoodQuantityTextBox.Text);
+                decimal currentPrice = foodList[indexNumber].CurrentPrice;
+                decimal price = currentPrice * quantity;
+
+                OrderedProductsTextBox.Text += $"{ FoodListComboBox.SelectedItem } X { FoodQuantityTextBox.Text } = { price }Eu\r\n";
+            }
+        }
+
+        private void AddDrinkButton_Click(object sender, EventArgs e)
+        {
+            if (DrinksListComboBox.SelectedItem != null)
+            {
+                int indexNumber = DrinksListComboBox.SelectedIndex;
+                int quantity = Convert.ToInt32(DrinkQuantityTextBox.Text);
+                decimal currentPrice = drinksList[indexNumber].CurrentPrice;
+                decimal price = currentPrice * quantity;
+
+                OrderedProductsTextBox.Text += $"{ DrinksListComboBox.SelectedItem } X { DrinkQuantityTextBox.Text } = { price }Eu;\r\n";
+            }
+        }
     }
 }
+      
