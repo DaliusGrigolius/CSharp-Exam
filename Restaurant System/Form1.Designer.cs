@@ -55,7 +55,6 @@
             this.DrinkQuantitySubtractButton = new System.Windows.Forms.Button();
             this.DrinkQuantityAddButton = new System.Windows.Forms.Button();
             this.TableDetailsLabel = new System.Windows.Forms.Label();
-            this.RemoveSelectedItemButton = new System.Windows.Forms.Button();
             this.RemoveAllItemsButton = new System.Windows.Forms.Button();
             this.CashRadioButton = new System.Windows.Forms.RadioButton();
             this.CardRadioButton = new System.Windows.Forms.RadioButton();
@@ -74,7 +73,10 @@
             this.LoggedInAsTextBox = new System.Windows.Forms.TextBox();
             this.LogOutButton = new System.Windows.Forms.Button();
             this.LogoPictureBox = new System.Windows.Forms.PictureBox();
-            this.OrderedProductsTextBox = new System.Windows.Forms.TextBox();
+            this.OrderedProductsListBox = new System.Windows.Forms.ListBox();
+            this.RemoveSelectedItemButton = new System.Windows.Forms.Button();
+            this.TotalAmountLabel = new System.Windows.Forms.Label();
+            this.TotalAmountTextBox = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.LogoPictureBox)).BeginInit();
             this.SuspendLayout();
             // 
@@ -82,38 +84,39 @@
             // 
             this.ConfirmOrderButton.BackColor = System.Drawing.Color.LightGreen;
             this.ConfirmOrderButton.Font = new System.Drawing.Font("Segoe UI", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.ConfirmOrderButton.Location = new System.Drawing.Point(467, 294);
+            this.ConfirmOrderButton.Location = new System.Drawing.Point(536, 296);
             this.ConfirmOrderButton.Name = "ConfirmOrderButton";
-            this.ConfirmOrderButton.Size = new System.Drawing.Size(280, 45);
+            this.ConfirmOrderButton.Size = new System.Drawing.Size(211, 37);
             this.ConfirmOrderButton.TabIndex = 5;
             this.ConfirmOrderButton.Text = "Confirm Order";
             this.ConfirmOrderButton.UseVisualStyleBackColor = false;
             this.ConfirmOrderButton.Visible = false;
+            this.ConfirmOrderButton.Click += new System.EventHandler(this.ConfirmOrderButton_Click);
             // 
             // FoodListComboBox
             // 
             this.FoodListComboBox.FormattingEnabled = true;
-            this.FoodListComboBox.Location = new System.Drawing.Point(523, 134);
+            this.FoodListComboBox.Location = new System.Drawing.Point(573, 123);
             this.FoodListComboBox.MaxDropDownItems = 100;
             this.FoodListComboBox.Name = "FoodListComboBox";
-            this.FoodListComboBox.Size = new System.Drawing.Size(224, 23);
+            this.FoodListComboBox.Size = new System.Drawing.Size(174, 23);
             this.FoodListComboBox.TabIndex = 6;
             this.FoodListComboBox.Visible = false;
             // 
             // DrinksListComboBox
             // 
             this.DrinksListComboBox.FormattingEnabled = true;
-            this.DrinksListComboBox.Location = new System.Drawing.Point(523, 215);
+            this.DrinksListComboBox.Location = new System.Drawing.Point(573, 194);
             this.DrinksListComboBox.MaxDropDownItems = 100;
             this.DrinksListComboBox.Name = "DrinksListComboBox";
-            this.DrinksListComboBox.Size = new System.Drawing.Size(224, 23);
+            this.DrinksListComboBox.Size = new System.Drawing.Size(174, 23);
             this.DrinksListComboBox.TabIndex = 7;
             this.DrinksListComboBox.Visible = false;
             // 
             // FoodLabel
             // 
             this.FoodLabel.AutoSize = true;
-            this.FoodLabel.Location = new System.Drawing.Point(467, 137);
+            this.FoodLabel.Location = new System.Drawing.Point(530, 126);
             this.FoodLabel.Name = "FoodLabel";
             this.FoodLabel.Size = new System.Drawing.Size(37, 15);
             this.FoodLabel.TabIndex = 8;
@@ -123,7 +126,7 @@
             // DrinksLabel
             // 
             this.DrinksLabel.AutoSize = true;
-            this.DrinksLabel.Location = new System.Drawing.Point(467, 218);
+            this.DrinksLabel.Location = new System.Drawing.Point(530, 197);
             this.DrinksLabel.Name = "DrinksLabel";
             this.DrinksLabel.Size = new System.Drawing.Size(43, 15);
             this.DrinksLabel.TabIndex = 9;
@@ -264,7 +267,7 @@
             // FoodQuantityLabel
             // 
             this.FoodQuantityLabel.AutoSize = true;
-            this.FoodQuantityLabel.Location = new System.Drawing.Point(467, 169);
+            this.FoodQuantityLabel.Location = new System.Drawing.Point(530, 158);
             this.FoodQuantityLabel.Name = "FoodQuantityLabel";
             this.FoodQuantityLabel.Size = new System.Drawing.Size(56, 15);
             this.FoodQuantityLabel.TabIndex = 21;
@@ -274,7 +277,7 @@
             // DrinkQuantityLabel
             // 
             this.DrinkQuantityLabel.AutoSize = true;
-            this.DrinkQuantityLabel.Location = new System.Drawing.Point(467, 250);
+            this.DrinkQuantityLabel.Location = new System.Drawing.Point(530, 229);
             this.DrinkQuantityLabel.Name = "DrinkQuantityLabel";
             this.DrinkQuantityLabel.Size = new System.Drawing.Size(56, 15);
             this.DrinkQuantityLabel.TabIndex = 23;
@@ -283,7 +286,7 @@
             // 
             // FoodQuantityTextBox
             // 
-            this.FoodQuantityTextBox.Location = new System.Drawing.Point(523, 166);
+            this.FoodQuantityTextBox.Location = new System.Drawing.Point(586, 155);
             this.FoodQuantityTextBox.Name = "FoodQuantityTextBox";
             this.FoodQuantityTextBox.ReadOnly = true;
             this.FoodQuantityTextBox.Size = new System.Drawing.Size(23, 23);
@@ -292,7 +295,7 @@
             // 
             // DrinkQuantityTextBox
             // 
-            this.DrinkQuantityTextBox.Location = new System.Drawing.Point(523, 247);
+            this.DrinkQuantityTextBox.Location = new System.Drawing.Point(586, 226);
             this.DrinkQuantityTextBox.Name = "DrinkQuantityTextBox";
             this.DrinkQuantityTextBox.ReadOnly = true;
             this.DrinkQuantityTextBox.Size = new System.Drawing.Size(23, 23);
@@ -302,9 +305,9 @@
             // AddFoodButton
             // 
             this.AddFoodButton.BackColor = System.Drawing.Color.LightGreen;
-            this.AddFoodButton.Location = new System.Drawing.Point(629, 166);
+            this.AddFoodButton.Location = new System.Drawing.Point(680, 155);
             this.AddFoodButton.Name = "AddFoodButton";
-            this.AddFoodButton.Size = new System.Drawing.Size(118, 23);
+            this.AddFoodButton.Size = new System.Drawing.Size(67, 23);
             this.AddFoodButton.TabIndex = 26;
             this.AddFoodButton.Text = "Add";
             this.AddFoodButton.UseVisualStyleBackColor = false;
@@ -314,9 +317,9 @@
             // AddDrinkButton
             // 
             this.AddDrinkButton.BackColor = System.Drawing.Color.LightGreen;
-            this.AddDrinkButton.Location = new System.Drawing.Point(629, 247);
+            this.AddDrinkButton.Location = new System.Drawing.Point(680, 227);
             this.AddDrinkButton.Name = "AddDrinkButton";
-            this.AddDrinkButton.Size = new System.Drawing.Size(118, 23);
+            this.AddDrinkButton.Size = new System.Drawing.Size(67, 23);
             this.AddDrinkButton.TabIndex = 27;
             this.AddDrinkButton.Text = "Add";
             this.AddDrinkButton.UseVisualStyleBackColor = false;
@@ -326,7 +329,7 @@
             // FoodQuantityAddButton
             // 
             this.FoodQuantityAddButton.BackColor = System.Drawing.Color.LightGreen;
-            this.FoodQuantityAddButton.Location = new System.Drawing.Point(558, 166);
+            this.FoodQuantityAddButton.Location = new System.Drawing.Point(621, 155);
             this.FoodQuantityAddButton.Name = "FoodQuantityAddButton";
             this.FoodQuantityAddButton.Size = new System.Drawing.Size(23, 23);
             this.FoodQuantityAddButton.TabIndex = 28;
@@ -338,7 +341,7 @@
             // FoodQuantitySubtractButton
             // 
             this.FoodQuantitySubtractButton.BackColor = System.Drawing.Color.MistyRose;
-            this.FoodQuantitySubtractButton.Location = new System.Drawing.Point(588, 166);
+            this.FoodQuantitySubtractButton.Location = new System.Drawing.Point(651, 155);
             this.FoodQuantitySubtractButton.Name = "FoodQuantitySubtractButton";
             this.FoodQuantitySubtractButton.Size = new System.Drawing.Size(23, 23);
             this.FoodQuantitySubtractButton.TabIndex = 29;
@@ -350,7 +353,7 @@
             // DrinkQuantitySubtractButton
             // 
             this.DrinkQuantitySubtractButton.BackColor = System.Drawing.Color.MistyRose;
-            this.DrinkQuantitySubtractButton.Location = new System.Drawing.Point(588, 247);
+            this.DrinkQuantitySubtractButton.Location = new System.Drawing.Point(651, 226);
             this.DrinkQuantitySubtractButton.Name = "DrinkQuantitySubtractButton";
             this.DrinkQuantitySubtractButton.Size = new System.Drawing.Size(23, 23);
             this.DrinkQuantitySubtractButton.TabIndex = 31;
@@ -362,7 +365,7 @@
             // DrinkQuantityAddButton
             // 
             this.DrinkQuantityAddButton.BackColor = System.Drawing.Color.LightGreen;
-            this.DrinkQuantityAddButton.Location = new System.Drawing.Point(558, 247);
+            this.DrinkQuantityAddButton.Location = new System.Drawing.Point(621, 226);
             this.DrinkQuantityAddButton.Name = "DrinkQuantityAddButton";
             this.DrinkQuantityAddButton.Size = new System.Drawing.Size(23, 23);
             this.DrinkQuantityAddButton.TabIndex = 30;
@@ -375,34 +378,24 @@
             // 
             this.TableDetailsLabel.AutoSize = true;
             this.TableDetailsLabel.Font = new System.Drawing.Font("Segoe UI", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.TableDetailsLabel.Location = new System.Drawing.Point(409, 99);
+            this.TableDetailsLabel.Location = new System.Drawing.Point(409, 95);
             this.TableDetailsLabel.Name = "TableDetailsLabel";
-            this.TableDetailsLabel.Size = new System.Drawing.Size(120, 25);
+            this.TableDetailsLabel.Size = new System.Drawing.Size(126, 25);
             this.TableDetailsLabel.TabIndex = 34;
-            this.TableDetailsLabel.Text = "Table details";
+            this.TableDetailsLabel.Text = "Order details";
             this.TableDetailsLabel.Visible = false;
-            // 
-            // RemoveSelectedItemButton
-            // 
-            this.RemoveSelectedItemButton.BackColor = System.Drawing.Color.MistyRose;
-            this.RemoveSelectedItemButton.Location = new System.Drawing.Point(191, 294);
-            this.RemoveSelectedItemButton.Name = "RemoveSelectedItemButton";
-            this.RemoveSelectedItemButton.Size = new System.Drawing.Size(126, 45);
-            this.RemoveSelectedItemButton.TabIndex = 35;
-            this.RemoveSelectedItemButton.Text = "Remove selected";
-            this.RemoveSelectedItemButton.UseVisualStyleBackColor = false;
-            this.RemoveSelectedItemButton.Visible = false;
             // 
             // RemoveAllItemsButton
             // 
             this.RemoveAllItemsButton.BackColor = System.Drawing.Color.MistyRose;
-            this.RemoveAllItemsButton.Location = new System.Drawing.Point(323, 294);
+            this.RemoveAllItemsButton.Location = new System.Drawing.Point(360, 296);
             this.RemoveAllItemsButton.Name = "RemoveAllItemsButton";
-            this.RemoveAllItemsButton.Size = new System.Drawing.Size(132, 45);
+            this.RemoveAllItemsButton.Size = new System.Drawing.Size(159, 37);
             this.RemoveAllItemsButton.TabIndex = 36;
-            this.RemoveAllItemsButton.Text = "Remove  all";
+            this.RemoveAllItemsButton.Text = "Remove all";
             this.RemoveAllItemsButton.UseVisualStyleBackColor = false;
             this.RemoveAllItemsButton.Visible = false;
+            this.RemoveAllItemsButton.Click += new System.EventHandler(this.RemoveAllItemsButton_Click);
             // 
             // CashRadioButton
             // 
@@ -578,21 +571,58 @@
             this.LogoPictureBox.TabIndex = 55;
             this.LogoPictureBox.TabStop = false;
             // 
-            // OrderedProductsTextBox
+            // OrderedProductsListBox
             // 
-            this.OrderedProductsTextBox.Location = new System.Drawing.Point(191, 134);
-            this.OrderedProductsTextBox.Multiline = true;
-            this.OrderedProductsTextBox.Name = "OrderedProductsTextBox";
-            this.OrderedProductsTextBox.Size = new System.Drawing.Size(264, 154);
-            this.OrderedProductsTextBox.TabIndex = 56;
-            this.OrderedProductsTextBox.Visible = false;
+            this.OrderedProductsListBox.FormattingEnabled = true;
+            this.OrderedProductsListBox.ItemHeight = 15;
+            this.OrderedProductsListBox.Location = new System.Drawing.Point(191, 123);
+            this.OrderedProductsListBox.Name = "OrderedProductsListBox";
+            this.OrderedProductsListBox.Size = new System.Drawing.Size(328, 169);
+            this.OrderedProductsListBox.TabIndex = 56;
+            this.OrderedProductsListBox.Visible = false;
+            // 
+            // RemoveSelectedItemButton
+            // 
+            this.RemoveSelectedItemButton.BackColor = System.Drawing.Color.MistyRose;
+            this.RemoveSelectedItemButton.Location = new System.Drawing.Point(191, 296);
+            this.RemoveSelectedItemButton.Name = "RemoveSelectedItemButton";
+            this.RemoveSelectedItemButton.Size = new System.Drawing.Size(161, 37);
+            this.RemoveSelectedItemButton.TabIndex = 57;
+            this.RemoveSelectedItemButton.Text = "Remove selected";
+            this.RemoveSelectedItemButton.UseVisualStyleBackColor = false;
+            this.RemoveSelectedItemButton.Visible = false;
+            this.RemoveSelectedItemButton.Click += new System.EventHandler(this.RemoveSelectedItemButton_Click);
+            // 
+            // TotalAmountLabel
+            // 
+            this.TotalAmountLabel.AutoSize = true;
+            this.TotalAmountLabel.Location = new System.Drawing.Point(530, 267);
+            this.TotalAmountLabel.Name = "TotalAmountLabel";
+            this.TotalAmountLabel.Size = new System.Drawing.Size(42, 15);
+            this.TotalAmountLabel.TabIndex = 58;
+            this.TotalAmountLabel.Text = "TOTAL:";
+            this.TotalAmountLabel.Visible = false;
+            // 
+            // TotalAmountTextBox
+            // 
+            this.TotalAmountTextBox.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this.TotalAmountTextBox.Location = new System.Drawing.Point(573, 261);
+            this.TotalAmountTextBox.Name = "TotalAmountTextBox";
+            this.TotalAmountTextBox.ReadOnly = true;
+            this.TotalAmountTextBox.Size = new System.Drawing.Size(174, 29);
+            this.TotalAmountTextBox.TabIndex = 59;
+            this.TotalAmountTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.TotalAmountTextBox.Visible = false;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(769, 514);
-            this.Controls.Add(this.OrderedProductsTextBox);
+            this.ClientSize = new System.Drawing.Size(777, 514);
+            this.Controls.Add(this.TotalAmountTextBox);
+            this.Controls.Add(this.TotalAmountLabel);
+            this.Controls.Add(this.RemoveSelectedItemButton);
+            this.Controls.Add(this.OrderedProductsListBox);
             this.Controls.Add(this.LogoPictureBox);
             this.Controls.Add(this.LogOutButton);
             this.Controls.Add(this.LoggedInAsTextBox);
@@ -611,7 +641,6 @@
             this.Controls.Add(this.CardRadioButton);
             this.Controls.Add(this.CashRadioButton);
             this.Controls.Add(this.RemoveAllItemsButton);
-            this.Controls.Add(this.RemoveSelectedItemButton);
             this.Controls.Add(this.TableDetailsLabel);
             this.Controls.Add(this.DrinkQuantitySubtractButton);
             this.Controls.Add(this.DrinkQuantityAddButton);
@@ -676,7 +705,6 @@
         private System.Windows.Forms.Button DrinkQuantitySubtractButton;
         private System.Windows.Forms.Button DrinkQuantityAddButton;
         private System.Windows.Forms.Label TableDetailsLabel;
-        private System.Windows.Forms.Button RemoveSelectedItemButton;
         private System.Windows.Forms.Button RemoveAllItemsButton;
         private System.Windows.Forms.RadioButton CashRadioButton;
         private System.Windows.Forms.RadioButton CardRadioButton;
@@ -695,6 +723,9 @@
         private System.Windows.Forms.TextBox LoggedInAsTextBox;
         private System.Windows.Forms.Button LogOutButton;
         private System.Windows.Forms.PictureBox LogoPictureBox;
-        private System.Windows.Forms.TextBox OrderedProductsTextBox;
+        private System.Windows.Forms.ListBox OrderedProductsListBox;
+        private System.Windows.Forms.Button RemoveSelectedItemButton;
+        private System.Windows.Forms.Label TotalAmountLabel;
+        private System.Windows.Forms.TextBox TotalAmountTextBox;
     }
 }
