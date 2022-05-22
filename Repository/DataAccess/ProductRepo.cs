@@ -22,21 +22,27 @@ namespace Repository.DataAccess
 
         public List<Product> RetrieveProducts(string filePath, bool isFood = true)
         {
-            var dataFile = File.ReadAllLines(filePath)
+            if (isFood)
+            {
+                var dataFile = File.ReadAllLines(filePath)
                 .Select(x => x.Split(','))
                 .Select(x => new Food(
                     x[0],
                     decimal.Parse(x[1])
                     ))
                 .ToList();
-            
-            if (isFood)
-            {
                 Food.AddRange(dataFile);
                 return Food;
             }
             else
             {
+                var dataFile = File.ReadAllLines(filePath)
+                .Select(x => x.Split(','))
+                .Select(x => new Drink(
+                    x[0],
+                    decimal.Parse(x[1])
+                    ))
+                .ToList();
                 Drinks.AddRange(dataFile);
                 return Drinks;
             }

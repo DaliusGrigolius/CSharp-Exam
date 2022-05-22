@@ -2,13 +2,10 @@
 {
     public class Food : Product
     {
-        public Food(string name, decimal currentPrice) : base(name, currentPrice)
+        public Food(string name, decimal currentPrice)
         {
-        }
-
-        public override string ToString()
-        {
-            return $"{base.Name} - {base.CurrentPrice}";
+            Name = name;
+            CurrentPrice = currentPrice;
         }
     }
 }

@@ -11,7 +11,7 @@ namespace Repository.Serializer
 {
     public class Serializer : ISerializer
     {
-        public void WriteOrderDataToFile(List<Order> productsList, string filePath)
+        public void WriteOrderDataToFile(List<Order> ordersList, string filePath)
         {
             if (!Directory.Exists(Path.GetDirectoryName(filePath)))
             {
@@ -20,11 +20,10 @@ namespace Repository.Serializer
 
             var options = new JsonSerializerOptions
             {
-                PropertyNameCaseInsensitive = true,
                 WriteIndented = true
             };
 
-            string jsonString = JsonSerializer.Serialize(productsList, options);
+            string jsonString = JsonSerializer.Serialize(ordersList, options);
             File.WriteAllText(filePath, jsonString);
         }
     }

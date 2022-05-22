@@ -3,13 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.1.32414.318
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Restaurant System", "Restaurant System\Restaurant System.csproj", "{FAC36F7E-2D66-4F0A-9BEB-9BE9193931FE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Restaurant System", "Restaurant System\Restaurant System.csproj", "{FAC36F7E-2D66-4F0A-9BEB-9BE9193931FE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Business", "Business\Business.csproj", "{E7F58B17-64A1-47C5-B525-D399711BF088}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Business", "Business\Business.csproj", "{E7F58B17-64A1-47C5-B525-D399711BF088}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Repository", "Repository\Repository.csproj", "{D80EC1D4-0154-4D48-B6B2-82FEB2C777BB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Repository", "Repository\Repository.csproj", "{D80EC1D4-0154-4D48-B6B2-82FEB2C777BB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XUnit Tests", "XUnit Tests\XUnit Tests.csproj", "{EE731DE0-34D1-407C-B485-26410399D7C2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XUnit Tests", "XUnit Tests\XUnit Tests.csproj", "{EE731DE0-34D1-407C-B485-26410399D7C2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
