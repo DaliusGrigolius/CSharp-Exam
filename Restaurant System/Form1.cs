@@ -27,15 +27,14 @@ namespace Restaurant_System
         private readonly IProductRepo _productRepo;
         private readonly ISerializer _serializer;
         private readonly IDeserializer _deserializer;
+        private readonly List<Employee> employees;
+        private readonly List<Product> drinksList;
+        private readonly List<Product> foodList;
+        private List<Table> tableList;
+        private List<Order> orders;
+        private List<OrderProduct> orderedProductsList;
         private Employee currentEmployee;
         private Table currentTable;
-        private List<Order> orders;
-        private List<Employee> employees;
-        private List<Table> tableList;
-        private List<Product> drinksList;
-        private List<Product> foodList;
-        private List<OrderProduct> orderedProductsList;
-
 
         public Form1()
         {
@@ -154,50 +153,35 @@ namespace Restaurant_System
         {
             bool isIdConvertSuccess = int.TryParse(IdTextBox.Text, out id);
             bool isPinCodeConvertSuccess = int.TryParse(PinCodeTextBox.Text, out pinCode);
-            if (isIdConvertSuccess && isPinCodeConvertSuccess)
-            {
-                bool regexMatchForId = Regex.Match(IdTextBox.Text, "^[0-9]{6,6}$").Success;
-                bool regexMatchForPin = Regex.Match(PinCodeTextBox.Text, "^[0-9]{4,4}$").Success;
-                if (regexMatchForId && regexMatchForPin)
-                {
-                    bool isValid = _employeeService.Validate(id, pinCode, employees);
-                    if (isValid)
-                    {
-                        currentEmployee = employees.Single(i => i.Id == id);
-                        ShowApp();
-                        FillFoodList();
-                        FillDrinksList();
-                    }
-                    else
-                    {
-                        MessageBox.Show("Error: Employee not found.");
-                    }
-                }
-                else
-                {
-                    MessageBox.Show("Error: not valid id number(6 digits) or pin code(4 digits).");
-                }
-            }
-            else
-            {
-                MessageBox.Show("Error: id number and pin code fields can't by empty!");
-            }
-        }
 
-        private void FillDrinksList()
-        {
-            for (int i = 0; i < drinksList.Count; i++)
+            if (!isIdConvertSuccess && !isPinCodeConvertSuccess)
             {
-                DrinksListComboBox.Items.Add($"\"{drinksList[i].Name}\" - {drinksList[i].CurrentPrice}Eu");
+                MessageBox.Show("Error: id number and pin code fields can't by empty.");
+                return;
             }
-        }
 
-        private void FillFoodList()
-        {
-            for (int i = 0; i < foodList.Count; i++)
+            bool regexMatchForId = Regex.Match(IdTextBox.Text, "^[0-9]{6,6}$").Success;
+            bool regexMatchForPin = Regex.Match(PinCodeTextBox.Text, "^[0-9]{4,4}$").Success;
+
+            if (!regexMatchForId && !regexMatchForPin)
             {
-                FoodListComboBox.Items.Add($"\"{foodList[i].Name}\" - {foodList[i].CurrentPrice}Eu");
+                MessageBox.Show("Error: not valid id number(6 digits) or pin code(4 digits).");
+                return;
             }
+
+            bool isValid = _employeeService.Validate(id, pinCode, employees);
+
+            if (!isValid)
+            {
+                MessageBox.Show("Error: Employee not found.");
+                return;
+            }
+
+            currentEmployee = employees.Single(i => i.Id == id);
+
+            ShowApp();
+            FillFoodList();
+            FillDrinksList();
         }
 
         private void ShowApp()
@@ -255,6 +239,22 @@ namespace Restaurant_System
             ExecutePaymentButton.Visible = true;
             TotalAmountLabel.Visible = true;
             TotalAmountTextBox.Visible = true;
+        }
+
+        private void FillDrinksList()
+        {
+            for (int i = 0; i < drinksList.Count; i++)
+            {
+                DrinksListComboBox.Items.Add($"\"{drinksList[i].Name}\" - {drinksList[i].CurrentPrice}Eu");
+            }
+        }
+
+        private void FillFoodList()
+        {
+            for (int i = 0; i < foodList.Count; i++)
+            {
+                FoodListComboBox.Items.Add($"\"{foodList[i].Name}\" - {foodList[i].CurrentPrice}Eu");
+            }
         }
 
         private void CRUD()
@@ -343,16 +343,9 @@ namespace Restaurant_System
 
         private void AddFoodButton_Click(object sender, EventArgs e)
         {
-            if (currentTable == null)
-            {
-                MessageBox.Show("Error: Table not selected.");
-                return;
-            }
+            if (CheckIfTableIsSelected()) return;
 
-            if (File.Exists(GetFilePathByCurrentTable()))
-            {
-                orders = _deserializer.DeserializeTableOrder(GetFilePathByCurrentTable());
-            }
+            CheckIfFileExists();
 
             if (FoodListComboBox.SelectedItem != null)
             {
@@ -363,36 +356,17 @@ namespace Restaurant_System
 
                 OrderedProductsListBox.Items.Add($"{FoodListComboBox.SelectedItem} X {FoodQuantityTextBox.Text} = {price}Eu");
 
-                if (orders.Count > 0)
-                {
-                    orders[0].OrderedProducts.Add(new OrderProduct(foodList[indexNumber], Convert.ToInt32(FoodQuantityTextBox.Text)));
-                    string path = GetFilePathByCurrentTable();
-                    orders[0].TotalAmount = GetAllOrdersTotalAmount();
-                    _serializer.WriteOrderDataToFile(orders, path);
-                }
-                else
-                {
-                    orderedProductsList.Add(new OrderProduct(foodList[indexNumber], Convert.ToInt32(FoodQuantityTextBox.Text)));
-                }
+                AddOrderByPopulatedList(indexNumber);
 
-                FoodQuantityTextBox.Text = "1";
-                TotalAmountTextBox.Clear();
-                TotalAmountTextBox.Text = $"{GetAllOrdersTotalAmount()}Eu";
+                ResetTextBoxes();
             }
         }
 
         private void AddDrinkButton_Click(object sender, EventArgs e)
         {
-            if (currentTable == null)
-            {
-                MessageBox.Show("Error: Table not selected.");
-                return;
-            }
+            if (CheckIfTableIsSelected()) return;
 
-            if (File.Exists(GetFilePathByCurrentTable()))
-            {
-                orders = _deserializer.DeserializeTableOrder(GetFilePathByCurrentTable());
-            }
+            CheckIfFileExists();
 
             if (DrinksListComboBox.SelectedItem != null)
             {
@@ -403,33 +377,17 @@ namespace Restaurant_System
 
                 OrderedProductsListBox.Items.Add($"{DrinksListComboBox.SelectedItem} X {DrinkQuantityTextBox.Text} = {price}Eu;");
 
-                if (orders.Count > 0)
-                {
-                    orders[0].OrderedProducts.Add(new OrderProduct(drinksList[indexNumber], Convert.ToInt32(DrinkQuantityTextBox.Text)));
-                    string path = GetFilePathByCurrentTable();
-                    orders[0].TotalAmount = GetAllOrdersTotalAmount();
-                    _serializer.WriteOrderDataToFile(orders, path);
-                }
-                else
-                {
-                    orderedProductsList.Add(new OrderProduct(drinksList[indexNumber], Convert.ToInt32(DrinkQuantityTextBox.Text)));
-                }
+                AddOrderByPopulatedList(indexNumber, false);
 
-                DrinkQuantityTextBox.Text = "1";
-                TotalAmountTextBox.Clear();
-                TotalAmountTextBox.Text = $"{GetAllOrdersTotalAmount()}Eu";
+                ResetTextBoxes(false);
             }
         }
 
         private void ConfirmOrderButton_Click(object sender, EventArgs e)
         {
-            if (currentTable == null)
-            {
-                MessageBox.Show("Error: Table not selected.");
-                return;
-            }
+            if (CheckIfTableIsSelected()) return;
 
-            if (orderedProductsList.Count < 1 && orders.Count < 0)
+            if (orderedProductsList.Count < 1 && orders.Count < 1)
             {
                 MessageBox.Show("Error: Table has no orders.");
                 return;
@@ -444,10 +402,110 @@ namespace Restaurant_System
 
             ChangeCurrentTableButtonColorWhenTableOccupied();
             currentTable.Occupied = true;
+            currentTable.Reserved = DateTime.Now;
             orderedProductsList.Clear();
             orders.Clear();
 
             MessageBox.Show("Success! Order sent to kitchen.");
+        }
+        
+        private void RemoveSelectedItemButton_Click(object sender, EventArgs e)
+        {
+            if (CheckIfTableIsSelected()) return;
+
+            if (OrderedProductsListBox.SelectedItem == null)
+            {
+                MessageBox.Show("Error: Item not selected.");
+                return;
+            }
+
+            int indexOfSelectedItem = GetIndexOfSelectedItemFromOrdersList();
+
+            if (File.Exists(GetFilePathByCurrentTable()))
+            {
+                orders = _deserializer.DeserializeTableOrder(GetFilePathByCurrentTable());
+                orders[0].OrderedProducts.RemoveAt(indexOfSelectedItem);
+            }
+            
+            if (indexOfSelectedItem >= 0 && orderedProductsList.Count > 0)
+            {
+                orderedProductsList.RemoveAt(indexOfSelectedItem);
+            }
+
+            string path = GetFilePathByCurrentTable();
+            if(orders.Count > 0)
+            {
+                orders[0].TotalAmount = GetAllOrdersTotalAmount();
+                _serializer.WriteOrderDataToFile(orders, path);
+            }
+
+            OrderedProductsListBox.Items.Remove(OrderedProductsListBox.SelectedItem);
+            TotalAmountTextBox.Clear();
+            TotalAmountTextBox.Text = $"{GetAllOrdersTotalAmount()}Eu";
+        }
+
+        private void FreeUpTableButton_Click_1(object sender, EventArgs e)
+        {
+            if (CheckIfTableIsSelected()) return;
+
+            currentTable.Occupied = false;
+
+            OrderedProductsListBox.Items.Clear();
+            TotalAmountTextBox.Clear();
+            TotalAmountTextBox.Clear();
+            orderedProductsList.Clear();
+            orders.Clear();
+            File.Delete(GetFilePathByCurrentTable());
+            ChangeCurrentTableButtonColorWhenTableFreed();
+        }
+
+        private int GetIndexOfSelectedItemFromOrdersList()
+        {
+            var temp = new List<object>();
+
+            for (int i = 0; i < OrderedProductsListBox.Items.Count; i++)
+            {
+                temp.Add(OrderedProductsListBox.Items[i]);
+            }
+
+            int listboxItemIndex = temp.IndexOf(temp.Find(x => x.Equals(OrderedProductsListBox.SelectedItem)));
+
+            return listboxItemIndex;
+        }
+
+        private void WriteDataToFile()
+        {
+            string path = GetFilePathByCurrentTable();
+            orders[0].TotalAmount = GetAllOrdersTotalAmount();
+            _serializer.WriteOrderDataToFile(orders, path);
+        }
+
+        private void AddOrderByPopulatedList(int indexNumber, bool isFood = true)
+        {
+            if (isFood)
+            {
+                if (orders.Count > 0)
+                {
+                    orders[0].OrderedProducts.Add(new OrderProduct(foodList[indexNumber], Convert.ToInt32(FoodQuantityTextBox.Text)));
+                    WriteDataToFile();
+                }
+                else
+                {
+                    orderedProductsList.Add(new OrderProduct(foodList[indexNumber], Convert.ToInt32(FoodQuantityTextBox.Text)));
+                }
+            }
+            else
+            {
+                if (orders.Count > 0)
+                {
+                    orders[0].OrderedProducts.Add(new OrderProduct(drinksList[indexNumber], Convert.ToInt32(DrinkQuantityTextBox.Text)));
+                    WriteDataToFile();
+                }
+                else
+                {
+                    orderedProductsList.Add(new OrderProduct(drinksList[indexNumber], Convert.ToInt32(DrinkQuantityTextBox.Text)));
+                }
+            }
         }
 
         private decimal GetAllOrdersTotalAmount()
@@ -470,47 +528,37 @@ namespace Restaurant_System
             return totalAmount;
         }
 
-        private void RemoveSelectedItemButton_Click(object sender, EventArgs e)
+        private void ResetTextBoxes(bool isFood = true)
         {
-            var temp = new List<object>();
-
-            for (int i = 0; i < OrderedProductsListBox.Items.Count; i++)
+            if (isFood)
             {
-                temp.Add(OrderedProductsListBox.Items[i]);
-            }
-
-            var listboxItemIndex = temp.IndexOf(temp.Find(x => x.Equals(OrderedProductsListBox.SelectedItem)));
-
-            if (File.Exists(GetFilePathByCurrentTable()))
-            {
-                orders = _deserializer.DeserializeTableOrder(GetFilePathByCurrentTable());
-                orders[0].OrderedProducts.RemoveAt(listboxItemIndex);
+                FoodQuantityTextBox.Text = "1";
             }
             else
             {
-                orderedProductsList.RemoveAt(listboxItemIndex);
+                DrinkQuantityTextBox.Text = "1";
             }
 
-            string path = GetFilePathByCurrentTable();
-            orders[0].TotalAmount = GetAllOrdersTotalAmount();
-            _serializer.WriteOrderDataToFile(orders, path);
-
-            OrderedProductsListBox.Items.Remove(OrderedProductsListBox.SelectedItem);
             TotalAmountTextBox.Clear();
             TotalAmountTextBox.Text = $"{GetAllOrdersTotalAmount()}Eu";
         }
 
-        private void FreeUpTableButton_Click_1(object sender, EventArgs e)
+        private void CheckIfFileExists()
         {
-            currentTable.Occupied = false;
+            if (File.Exists(GetFilePathByCurrentTable()))
+            {
+                orders = _deserializer.DeserializeTableOrder(GetFilePathByCurrentTable());
+            }
+        }
 
-            OrderedProductsListBox.Items.Clear();
-            TotalAmountTextBox.Clear();
-            TotalAmountTextBox.Clear();
-            orderedProductsList.Clear();
-            orders.Clear();
-            File.Delete(GetFilePathByCurrentTable());
-            ChangeCurrentTableButtonColorWhenTableFreed();
+        private bool CheckIfTableIsSelected()
+        {
+            if (currentTable == null)
+            {
+                MessageBox.Show("Error: Table not selected.");
+                return true;
+            }
+            return false;
         }
 
         private string GetFilePathByCurrentTable()
