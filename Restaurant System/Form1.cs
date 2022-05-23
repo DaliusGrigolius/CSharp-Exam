@@ -2,10 +2,12 @@
 using Repository;
 using Repository.DataAccess;
 using Repository.Models;
+using Repository.Models.Cheques;
 using Repository.Serializer;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -27,12 +29,14 @@ namespace Restaurant_System
         private readonly IProductRepo _productRepo;
         private readonly ISerializer _serializer;
         private readonly IDeserializer _deserializer;
+        private FiscalCheque fiscalCheque;
         private readonly List<Employee> employees;
         private readonly List<Product> drinksList;
         private readonly List<Product> foodList;
         private List<Table> tableList;
         private List<Order> orders;
         private List<OrderProduct> orderedProductsList;
+        private List<FiscalCheque> fiscalChequeList;
         private Employee currentEmployee;
         private Table currentTable;
 
@@ -55,6 +59,7 @@ namespace Restaurant_System
             ShowOccupiedTables();
             orderedProductsList = new List<OrderProduct>();
             orders = new List<Order>();
+            fiscalChequeList = new List<FiscalCheque>();
         }
 
         private void ChangeLoginPosition()
@@ -101,61 +106,112 @@ namespace Restaurant_System
 
         private void Table1Button_Click(object sender, EventArgs e)
         {
+            if (currentTable != null)
+            {
+                ResetButtonFont();
+            }
             currentTable = tableList[0];
+            ChangeButtonFont();
             CRUD();
         }
-
+        
         private void Table2Button_Click(object sender, EventArgs e)
         {
+            if (currentTable != null)
+            {
+                ResetButtonFont();
+            }
+
             currentTable = tableList[1];
+            ChangeButtonFont();
             CRUD();
         }
 
         private void Table3Button_Click(object sender, EventArgs e)
         {
+            if (currentTable != null)
+            {
+                ResetButtonFont();
+            }
             currentTable = tableList[2];
+            ChangeButtonFont();
             CRUD();
         }
 
         private void Table4Button_Click(object sender, EventArgs e)
         {
+            if (currentTable != null)
+            {
+                ResetButtonFont();
+            }
             currentTable = tableList[3];
+            ChangeButtonFont();
             CRUD();
         }
 
         private void Table5Button_Click(object sender, EventArgs e)
         {
+            if (currentTable != null)
+            {
+                ResetButtonFont();
+            }
             currentTable = tableList[4];
+            ChangeButtonFont();
             CRUD();
         }
 
         private void Table6Button_Click(object sender, EventArgs e)
         {
+            if (currentTable != null)
+            {
+                ResetButtonFont();
+            }
             currentTable = tableList[5];
+            ChangeButtonFont();
             CRUD();
         }
 
         private void Table7Button_Click(object sender, EventArgs e)
         {
+            if (currentTable != null)
+            {
+                ResetButtonFont();
+            }
             currentTable = tableList[6];
+            ChangeButtonFont();
             CRUD();
         }
 
         private void Table8Button_Click(object sender, EventArgs e)
         {
+            if (currentTable != null)
+            {
+                ResetButtonFont();
+            }
             currentTable = tableList[7];
+            ChangeButtonFont();
             CRUD();
         }
 
         private void Table9Button_Click(object sender, EventArgs e)
         {
+            if (currentTable != null)
+            {
+                ResetButtonFont();
+            }
             currentTable = tableList[8];
+            ChangeButtonFont();
             CRUD();
         }
 
         private void Table10Button_Click(object sender, EventArgs e)
         {
+            if (currentTable != null)
+            {
+                ResetButtonFont();
+            }
             currentTable = tableList[9];
+            ChangeButtonFont();
             CRUD();
         }
 
@@ -295,7 +351,11 @@ namespace Restaurant_System
         {
             for (int i = 0; i < orders[0].OrderedProducts.Count; i++)
             {
-                OrderedProductsListBox.Items.Add($"\"{orders[0].OrderedProducts[i].Product.Name}\" - {orders[0].OrderedProducts[i].Product.CurrentPrice}Eu X {orders[0].OrderedProducts[i].Quantity} = {orders[0].OrderedProducts[i].Product.CurrentPrice * orders[0].OrderedProducts[i].Quantity}Eu");
+                var name = orders[0].OrderedProducts[i].Product.Name;
+                var price = orders[0].OrderedProducts[i].Product.CurrentPrice;
+                var quantity = orders[0].OrderedProducts[i].Quantity;
+
+                OrderedProductsListBox.Items.Add($"\"{name}\" - {price}Eu X {quantity} = {price * quantity}Eu");
             }
         }
 
@@ -358,7 +418,7 @@ namespace Restaurant_System
 
         private void AddFoodButton_Click(object sender, EventArgs e)
         {
-            if (CheckIfTableIsSelected()) return;
+            if (CheckIfTableIsNotSelected()) return;
 
             CheckIfFileExists();
 
@@ -379,7 +439,7 @@ namespace Restaurant_System
 
         private void AddDrinkButton_Click(object sender, EventArgs e)
         {
-            if (CheckIfTableIsSelected()) return;
+            if (CheckIfTableIsNotSelected()) return;
 
             CheckIfFileExists();
 
@@ -400,13 +460,8 @@ namespace Restaurant_System
 
         private void ConfirmOrderButton_Click(object sender, EventArgs e)
         {
-            if (CheckIfTableIsSelected()) return;
-
-            if (orderedProductsList.Count < 1 && orders.Count < 1)
-            {
-                MessageBox.Show("Error: Table has no orders.");
-                return;
-            }
+            if (CheckIfTableIsNotSelected()) return;
+            if (CheckIfOrdersNotExists()) return;
 
             if (orderedProductsList.Count > 0)
             {
@@ -418,15 +473,19 @@ namespace Restaurant_System
             ChangeCurrentTableButtonColorWhenTableOccupied();
             currentTable.Occupied = true;
             currentTable.Reserved = DateTime.Now;
+
+            PrintFiscalCheque();
+
             orderedProductsList.Clear();
             orders.Clear();
+            fiscalChequeList.Clear();
 
             MessageBox.Show("Success! Order sent to kitchen.");
         }
         
         private void RemoveSelectedItemButton_Click(object sender, EventArgs e)
         {
-            if (CheckIfTableIsSelected()) return;
+            if (CheckIfTableIsNotSelected()) return;
 
             if (OrderedProductsListBox.SelectedItem == null)
             {
@@ -461,7 +520,7 @@ namespace Restaurant_System
 
         private void FreeUpTableButton_Click_1(object sender, EventArgs e)
         {
-            if (CheckIfTableIsSelected()) return;
+            if (CheckIfTableIsNotSelected()) return;
 
             currentTable.Occupied = false;
 
@@ -472,6 +531,16 @@ namespace Restaurant_System
             orders.Clear();
             File.Delete(GetFilePathByCurrentTable());
             ChangeCurrentTableButtonColorWhenTableFreed();
+        }
+
+        private bool CheckIfOrdersNotExists()
+        {
+            if (orderedProductsList.Count < 1 && orders.Count < 1)
+            {
+                MessageBox.Show("Error: Table has no orders.");
+                return true;
+            }
+            return false;
         }
 
         private int GetIndexOfSelectedItemFromOrdersList()
@@ -566,7 +635,7 @@ namespace Restaurant_System
             }
         }
 
-        private bool CheckIfTableIsSelected()
+        private bool CheckIfTableIsNotSelected()
         {
             if (currentTable == null)
             {
@@ -698,6 +767,124 @@ namespace Restaurant_System
                     MessageBox.Show("Error: Table number not found.");
                     break;
             }
+        }
+
+        private void ChangeButtonFont()
+        {
+            var font = new Font("Segoe UI", 16, FontStyle.Bold);
+
+            switch (currentTable.Number)
+            {
+                case 1:
+                    Table1Button.Font = font;
+                    break;
+                case 2:
+                    Table2Button.Font = font;
+                    break;
+                case 3:
+                    Table3Button.Font = font;
+                    break;
+                case 4:
+                    Table4Button.Font = font;
+                    break;
+                case 5:
+                    Table5Button.Font = font;
+                    break;
+                case 6:
+                    Table6Button.Font = font;
+                    break;
+                case 7:
+                    Table7Button.Font = font;
+                    break;
+                case 8:
+                    Table8Button.Font = font;
+                    break;
+                case 9:
+                    Table9Button.Font = font;
+                    break;
+                case 10:
+                    Table10Button.Font = font;
+                    break;
+                default:
+                    MessageBox.Show("Error: table number not found");
+                    break;
+            }
+        }
+
+        private void ResetButtonFont()
+        {
+            var font = new Font("Segoe UI", 9, FontStyle.Regular);
+            switch (currentTable.Number)
+            {
+                case 1:
+                    Table1Button.Font = font;
+                    break;
+                case 2:
+                    Table2Button.Font = font;
+                    break;
+                case 3:
+                    Table3Button.Font = font;
+                    break;
+                case 4:
+                    Table4Button.Font = font;
+                    break;
+                case 5:
+                    Table5Button.Font = font;
+                    break;
+                case 6:
+                    Table6Button.Font = font;
+                    break;
+                case 7:
+                    Table7Button.Font = font;
+                    break;
+                case 8:
+                    Table8Button.Font = font;
+                    break;
+                case 9:
+                    Table9Button.Font = font;
+                    break;
+                case 10:
+                    Table10Button.Font = font;
+                    break;
+                default:
+                    MessageBox.Show("Error: table number not found");
+                    break;
+            }
+        }
+
+        private void PrintFiscalCheque()
+        {
+            string fiscalChequeFilePath = @$"..\..\..\..\DataFiles\Cheques\fiscalCheque{DateTime.Now.Ticks / (decimal)TimeSpan.TicksPerMillisecond}";
+
+            fiscalCheque = new FiscalCheque("Fiskalinis", "AB NomNom", 55198165, "Vilnius, Kauno g. 20", "LT100003578563", DateTime.Now, orders[0].OrderedProducts, orders[0].TotalAmount, $"{currentEmployee.FirstName} {currentEmployee.LastName}");
+
+            fiscalCheque.PrintFiscalChequeToTxtFile(fiscalChequeFilePath);
+        }
+
+        private void ExecutePaymentButton_Click(object sender, EventArgs e)
+        {
+            if (CardRadioButton.Checked)
+            {
+                ExecutePaymentWithCard();
+            }
+            else if (CashRadioButton.Checked)
+            {
+                ExecutePaymentWithCash();
+            }
+            else
+            {
+                MessageBox.Show("Error: payment method not selected.");
+            }
+        }
+
+        private void ExecutePaymentWithCard()
+        {
+
+        }
+
+        private void ExecutePaymentWithCash()
+        {
+
         }
     }
 }

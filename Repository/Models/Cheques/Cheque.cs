@@ -1,24 +1,17 @@
-﻿namespace Repository.Models.Cheques
+﻿using System;
+using System.Collections.Generic;
+
+namespace Repository.Models.Cheques
 {
-    public abstract class Cheque
+    public class Cheque
     {
         public string CompanyName { get; set; }
         public int LegalEntityCode { get; set; }
         public string Address { get; set; }
         public string VATRegistrationNumber { get; set; }
-        public string BillingType { get; set; }
-        public int ChequeNumber { get; set; }
-        public double TotalAmount { get; set; }
-
-        public Cheque(string companyName, int legalEntityCode, string address, string vATRegistrationNumber, string billingType, int chequeNumber, double totalAmount)
-        {
-            CompanyName = companyName;
-            LegalEntityCode = legalEntityCode;
-            Address = address;
-            VATRegistrationNumber = vATRegistrationNumber;
-            BillingType = billingType;
-            ChequeNumber = chequeNumber;
-            TotalAmount = totalAmount;
-        }
+        public DateTime PrintTime { get; set; }
+        public List<OrderProduct> OrderedProductsList { get; set; }
+        public decimal AmountToPay { get; set; }
+        public string ServicedPerson { get; set; }
     }
 }

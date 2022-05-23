@@ -432,6 +432,7 @@
             this.ExecutePaymentButton.Text = "Execute payment";
             this.ExecutePaymentButton.UseVisualStyleBackColor = false;
             this.ExecutePaymentButton.Visible = false;
+            this.ExecutePaymentButton.Click += new System.EventHandler(this.ExecutePaymentButton_Click);
             // 
             // PaymentDetailsLabel
             // 
