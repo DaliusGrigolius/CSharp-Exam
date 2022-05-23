@@ -17,7 +17,7 @@ namespace Restaurant_System
     {
         private int id;
         private int pinCode;
-        private readonly string filePath;
+        private readonly string employeesFilePath;
         private readonly string foodListFilePath;
         private readonly string drinksListFilePath;
         private int foodQuantityCounter = 1;
@@ -39,12 +39,12 @@ namespace Restaurant_System
         public Form1()
         {
             InitializeComponent();
-            filePath = @"..\..\..\..\DataFiles\Employees.json";
+            employeesFilePath = @"..\..\..\..\DataFiles\Employees.json";
             foodListFilePath = @"..\..\..\..\DataFiles\food.csv";
             drinksListFilePath = @"..\..\..\..\DataFiles\drinks.csv";
-            _employeeRepo = new EmployeeRepo(new Deserializer(), filePath);
-            _employeeService = new EmployeeService();
+            _employeeRepo = new EmployeeRepo(new Deserializer(), employeesFilePath);
             employees = _employeeRepo.RetrieveEmployees();
+            _employeeService = new EmployeeService();
             _productRepo = new ProductRepo();
             _serializer = new Serializer();
             _deserializer = new Deserializer();
@@ -52,6 +52,7 @@ namespace Restaurant_System
             foodList = _productRepo.RetrieveProducts(foodListFilePath);
             CreateTables();
             ChangeLoginPosition();
+            ShowOccupiedTables();
             orderedProductsList = new List<OrderProduct>();
             orders = new List<Order>();
         }
@@ -82,6 +83,20 @@ namespace Restaurant_System
                 new Table(9, 8, false),
                 new Table(10, 8, false),
             };
+        }
+
+        private void ShowOccupiedTables()
+        {
+            for (int i = 0; i < 10; i++)
+            {
+                currentTable = tableList[i];
+
+                if (File.Exists(GetFilePathByCurrentTable()))
+                {
+                    currentTable.Occupied = true;
+                    ChangeCurrentTableButtonColorWhenTableOccupied();
+                }
+            }
         }
 
         private void Table1Button_Click(object sender, EventArgs e)

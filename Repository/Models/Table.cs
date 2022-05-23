@@ -8,7 +8,6 @@ namespace Repository.Models
         public int Number { get; set; }
         public int Seating { get; set; }
         public bool Occupied { get; set; } = false;
-        public List<Order> Orders { get; set; }
         public DateTime Reserved { get; set; }
         public DateTime Freed { get; set; }
 

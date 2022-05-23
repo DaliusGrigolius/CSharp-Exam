@@ -1,0 +1,24 @@
+[
+  {
+    "TableId": 1,
+    "TableSeating": 2,
+    "OrderedProducts": [
+      {
+        "Product": {
+          "Name": "Squid and shrimp snack",
+          "CurrentPrice": 8.3
+        },
+        "Quantity": 1
+      },
+      {
+        "Product": {
+          "Name": "Coca Cola",
+          "CurrentPrice": 1.9
+        },
+        "Quantity": 1
+      }
+    ],
+    "TotalAmount": 10.2,
+    "CreatedAt": "2022-05-23T10:29:39.2832571+03:00"
+  }
+]
