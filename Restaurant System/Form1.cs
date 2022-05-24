@@ -989,7 +989,7 @@ namespace Restaurant_System
         {
             string customerChequeFilePath = @$"..\..\..\..\DataFiles\Cheques\CustomerCheques\CustomerCheque.Table{currentTable.Number}.{DateTime.Now.Ticks / (decimal)TimeSpan.TicksPerMillisecond}";
 
-            ICustomerChequePaymentWithCash _ccpwc = new CustomerChequePaymentWithCash("AB NomNom", 55198165, "Vilnius, Kauno g. 20", "LT100003578563", DateTime.Now, orders[0].OrderedProducts, orders[0].TotalAmount, "Payment with cash", orders[0].TotalAmount - Convert.ToDecimal(AmountReceivedTextBox.Text), $"{currentEmployee.FirstName} {currentEmployee.LastName}", "with this check you will receive a 5% discount on the account on the next visit.", Convert.ToDecimal(AmountReceivedTextBox.Text));
+            ICustomerChequePaymentWithCash _ccpwc = new CustomerChequePaymentWithCash("AB NomNom", 55198165, "Vilnius, Kauno g. 20", "LT100003578563", DateTime.Now, orders[0].OrderedProducts, orders[0].TotalAmount, "Payment with cash", Math.Abs(orders[0].TotalAmount - Convert.ToDecimal(AmountReceivedTextBox.Text)), $"{currentEmployee.FirstName} {currentEmployee.LastName}", "with this check you will receive a 5% discount on the account on the next visit.", Convert.ToDecimal(AmountReceivedTextBox.Text));
 
             _ccpwc.PrintCustomerChequeToTxtFile(customerChequeFilePath);
         }
@@ -998,7 +998,7 @@ namespace Restaurant_System
         {
             string restaurantChequeFilePath = @$"..\..\..\..\DataFiles\Cheques\RestaurantCheques\RestaurantCheque.Table{currentTable.Number}.{DateTime.Now.Ticks / (decimal)TimeSpan.TicksPerMillisecond}";
 
-            IRestaurantChequePaymentWithCash _rcpwc = new RestaurantChequePaymentWithCash("AB NomNom", 55198165, "Vilnius, Kauno g. 20", "LT100003578563", DateTime.Now, orders[0].OrderedProducts, orders[0].TotalAmount, "Payment with cash", $"{currentEmployee.FirstName} {currentEmployee.LastName}", orders[0].TotalAmount - Convert.ToDecimal(AmountReceivedTextBox.Text), Convert.ToDecimal(AmountReceivedTextBox.Text));
+            IRestaurantChequePaymentWithCash _rcpwc = new RestaurantChequePaymentWithCash("AB NomNom", 55198165, "Vilnius, Kauno g. 20", "LT100003578563", DateTime.Now, orders[0].OrderedProducts, orders[0].TotalAmount, "Payment with cash", $"{currentEmployee.FirstName} {currentEmployee.LastName}", Math.Abs(orders[0].TotalAmount - Convert.ToDecimal(AmountReceivedTextBox.Text)), Convert.ToDecimal(AmountReceivedTextBox.Text));
 
             _rcpwc.PrintRestaurantChequeToTxtFile(restaurantChequeFilePath);
         }
