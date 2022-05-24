@@ -29,7 +29,9 @@ namespace Repository.DataAccess
                     decimal.Parse(x[1])
                     ))
                 .ToList();
+
                 Food.AddRange(dataFile);
+
                 return Food;
             }
             else
@@ -41,7 +43,9 @@ namespace Repository.DataAccess
                     decimal.Parse(x[1])
                     ))
                 .ToList();
+
                 Drinks.AddRange(dataFile);
+
                 return Drinks;
             }
         }

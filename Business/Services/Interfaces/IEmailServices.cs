@@ -1,6 +1,6 @@
 ﻿namespace Business.Services.Interfaces
 {
-    public interface ISenderViaEmail
+    public interface IEmailServices
     {
         void SendChequeViaEmail(string emailAddress);
     }

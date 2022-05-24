@@ -2,7 +2,7 @@
 
 namespace Business.Services
 {
-    public class SenderViaEmail : ISenderViaEmail
+    public class EmailServices : IEmailServices
     {
         public void SendChequeViaEmail(string emailAddress)
         {

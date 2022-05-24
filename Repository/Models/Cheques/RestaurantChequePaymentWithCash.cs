@@ -39,7 +39,7 @@ namespace Repository.Models.Cheques
             {
                 text += $"\"{x.Product.Name}\" {x.Product.CurrentPrice}Eu X {x.Quantity}\r\n";
             }
-            text += $"\r\nTOTAL: {AmountToPay}Eu\r\n{MethodOfPayment}\r\nAmount given: {AmountGiven}\r\nChange: {Change}\r\n\r\nWaiter/Waitress: {ServicedPerson}\r\n---------------------------------------\r\n";
+            text += $"\r\nTOTAL: {AmountToPay}Eu\r\n{MethodOfPayment}\r\nAmount given: {AmountGiven}\r\nChange: {Change}Eu\r\n\r\nWaiter/Waitress: {ServicedPerson}\r\n---------------------------------------\r\n";
 
             File.WriteAllText(customerChequeFilePath, text);
         }

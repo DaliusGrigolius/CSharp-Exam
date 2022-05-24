@@ -29,10 +29,16 @@ namespace Restaurant_System
         private readonly IEmployeeService _employeeService;
         private readonly IEmployeeRepo _employeeRepo;
         private readonly IProductRepo _productRepo;
+        private readonly ITableRepo _tableList;
+        private readonly ITableServices _tableServices;
         private readonly ISerializer _serializer;
         private readonly IDeserializer _deserializer;
-        private readonly ISenderViaEmail _senderViaEmail;
+        private readonly IEmailServices _emailServices;
         private IFiscalCheque _fiscalCheque;
+        private IRestaurantChequePaymentWithCard _rcpwc;
+        private ICustomerChequePaymentWithCard _ccpwc;
+        private ICustomerChequePaymentWithCash _ccpwca;
+        private IRestaurantChequePaymentWithCash _rcpwca;
         private readonly List<Employee> employees;
         private readonly List<Product> drinksList;
         private readonly List<Product> foodList;
@@ -50,14 +56,16 @@ namespace Restaurant_System
             drinksListFilePath = @"..\..\..\..\DataFiles\drinks.csv";
             _employeeRepo = new EmployeeRepo(new Deserializer(), employeesFilePath);
             employees = _employeeRepo.RetrieveEmployees();
+            _tableList = new TableRepo();
+            tableList = _tableList.RetrieveTableList();
+            _tableServices = new TableServices();
             _employeeService = new EmployeeService();
             _productRepo = new ProductRepo();
             _serializer = new Serializer();
             _deserializer = new Deserializer();
-            _senderViaEmail = new SenderViaEmail();
+            _emailServices = new EmailServices();
             drinksList = _productRepo.RetrieveProducts(drinksListFilePath, false);
             foodList = _productRepo.RetrieveProducts(foodListFilePath);
-            CreateTables();
             ChangeLoginPosition();
             ShowOccupiedTables();
             orderedProductsList = new List<OrderProduct>();
@@ -75,30 +83,13 @@ namespace Restaurant_System
             ConfirmLoginButton.Location = new Point(342, 291);
         }
 
-        private void CreateTables()
-        {
-            tableList = new List<Table>
-            {
-                new Table(1, 2, false),
-                new Table(2, 2, false),
-                new Table(3, 2, false),
-                new Table(4, 4, false),
-                new Table(5, 4, false),
-                new Table(6, 4, false),
-                new Table(7, 6, false),
-                new Table(8, 6, false),
-                new Table(9, 8, false),
-                new Table(10, 8, false),
-            };
-        }
-
         private void ShowOccupiedTables()
         {
             for (int i = 0; i < 10; i++)
             {
                 currentTable = tableList[i];
 
-                if (File.Exists(GetFilePathByCurrentTable()))
+                if (File.Exists(_tableServices.GetFilePathByCurrentTable(currentTable.Number)))
                 {
                     currentTable.Occupied = true;
                     ChangeCurrentTableButtonColorWhenTableOccupied();
@@ -344,13 +335,13 @@ namespace Restaurant_System
             orderedProductsList.Clear();
             OrderedProductsListBox.Items.Clear();
 
-            if (!File.Exists(GetFilePathByCurrentTable()))
+            if (!File.Exists(_tableServices.GetFilePathByCurrentTable(currentTable.Number)))
             {
                 return;
             }
             else
             {
-                orders = _deserializer.DeserializeTableOrder(GetFilePathByCurrentTable());
+                orders = _deserializer.DeserializeTableOrder(_tableServices.GetFilePathByCurrentTable(currentTable.Number));
                 TotalAmountTextBox.Text = $"{GetAllOrdersTotalAmount()}Eu";
                 FillOrderedProductsListBox();
             }
@@ -475,7 +466,7 @@ namespace Restaurant_System
             if (orderedProductsList.Count > 0)
             {
                 orders.Add(new Order(currentTable.Number, currentTable.Seating, orderedProductsList, GetAllOrdersTotalAmount(), DateTime.Now));
-                string path = GetFilePathByCurrentTable();
+                string path = _tableServices.GetFilePathByCurrentTable(currentTable.Number);
                 _serializer.WriteOrderDataToFile(orders, path);
             }
 
@@ -503,9 +494,9 @@ namespace Restaurant_System
 
             int indexOfSelectedItem = GetIndexOfSelectedItemFromOrdersList();
 
-            if (File.Exists(GetFilePathByCurrentTable()))
+            if (File.Exists(_tableServices.GetFilePathByCurrentTable(currentTable.Number)))
             {
-                orders = _deserializer.DeserializeTableOrder(GetFilePathByCurrentTable());
+                orders = _deserializer.DeserializeTableOrder(_tableServices.GetFilePathByCurrentTable(currentTable.Number));
                 orders[0].OrderedProducts.RemoveAt(indexOfSelectedItem);
             }
             
@@ -514,7 +505,7 @@ namespace Restaurant_System
                 orderedProductsList.RemoveAt(indexOfSelectedItem);
             }
 
-            string path = GetFilePathByCurrentTable();
+            string path = _tableServices.GetFilePathByCurrentTable(currentTable.Number);
             if(orders.Count > 0)
             {
                 orders[0].TotalAmount = GetAllOrdersTotalAmount();
@@ -542,9 +533,9 @@ namespace Restaurant_System
             orderedProductsList.Clear();
             orders.Clear();
 
-            if (File.Exists(GetFilePathByCurrentTable()))
+            if (File.Exists(_tableServices.GetFilePathByCurrentTable(currentTable.Number)))
             {
-                File.Delete(GetFilePathByCurrentTable());
+                File.Delete(_tableServices.GetFilePathByCurrentTable(currentTable.Number));
             }
             
             ChangeCurrentTableButtonColorWhenTableFreed();
@@ -576,7 +567,7 @@ namespace Restaurant_System
 
         private void WriteDataToFile()
         {
-            string path = GetFilePathByCurrentTable();
+            string path = _tableServices.GetFilePathByCurrentTable(currentTable.Number);
             orders[0].TotalAmount = GetAllOrdersTotalAmount();
             _serializer.WriteOrderDataToFile(orders, path);
         }
@@ -613,7 +604,7 @@ namespace Restaurant_System
         {
             decimal totalAmount = 0;
 
-            if (File.Exists(GetFilePathByCurrentTable()))
+            if (File.Exists(_tableServices.GetFilePathByCurrentTable(currentTable.Number)))
             {
                 for (int i = 0; i < orders[0].OrderedProducts.Count; i++)
                 {
@@ -648,9 +639,9 @@ namespace Restaurant_System
 
         private void CheckIfFileExists()
         {
-            if (File.Exists(GetFilePathByCurrentTable()))
+            if (File.Exists(_tableServices.GetFilePathByCurrentTable(currentTable.Number)))
             {
-                orders = _deserializer.DeserializeTableOrder(GetFilePathByCurrentTable());
+                orders = _deserializer.DeserializeTableOrder(_tableServices.GetFilePathByCurrentTable(currentTable.Number));
             }
         }
 
@@ -664,126 +655,84 @@ namespace Restaurant_System
             return false;
         }
 
-        private string GetFilePathByCurrentTable()
-        {
-            string path = "";
-
-            switch (currentTable.Number)
-            {
-                case 1:
-                    path = @"..\..\..\..\DataFiles\Orders\ordersTable1.json";
-                    break;
-                case 2:
-                    path = @"..\..\..\..\DataFiles\Orders\ordersTable2.json";
-                    break;
-                case 3:
-                    path = @"..\..\..\..\DataFiles\Orders\ordersTable3.json";
-                    break;
-                case 4:
-                    path = @"..\..\..\..\DataFiles\Orders\ordersTable4.json";
-                    break;
-                case 5:
-                    path = @"..\..\..\..\DataFiles\Orders\ordersTable5.json";
-                    break;
-                case 6:
-                    path = @"..\..\..\..\DataFiles\Orders\ordersTable6.json";
-                    break;
-                case 7:
-                    path = @"..\..\..\..\DataFiles\Orders\ordersTable7.json";
-                    break;
-                case 8:
-                    path = @"..\..\..\..\DataFiles\Orders\ordersTable8.json";
-                    break;
-                case 9:
-                    path = @"..\..\..\..\DataFiles\Orders\ordersTable9.json";
-                    break;
-                case 10:
-                    path = @"..\..\..\..\DataFiles\Orders\ordersTable10.json";
-                    break;
-                default:
-                    MessageBox.Show("Error: Table number not found.");
-                    break;
-            }
-
-            return path;
-        }
-
         private void ChangeCurrentTableButtonColorWhenTableOccupied()
         {
+            var color = Color.MistyRose;
+
             switch (currentTable.Number)
             {
                 case 1:
-                    Table1Button.BackColor = Color.MistyRose;
+                    Table1Button.BackColor = color;
                     break;
                 case 2:
-                    Table2Button.BackColor = Color.MistyRose;
+                    Table2Button.BackColor = color;
                     break;
                 case 3:
-                    Table3Button.BackColor = Color.MistyRose;
+                    Table3Button.BackColor = color;
                     break;
                 case 4:
-                    Table4Button.BackColor = Color.MistyRose;
+                    Table4Button.BackColor = color;
                     break;
                 case 5:
-                    Table5Button.BackColor = Color.MistyRose;
+                    Table5Button.BackColor = color;
                     break;
                 case 6:
-                    Table6Button.BackColor = Color.MistyRose;
+                    Table6Button.BackColor = color;
                     break;
                 case 7:
-                    Table7Button.BackColor = Color.MistyRose;
+                    Table7Button.BackColor = color;
                     break;
                 case 8:
-                    Table8Button.BackColor = Color.MistyRose;
+                    Table8Button.BackColor = color;
                     break;
                 case 9:
-                    Table9Button.BackColor = Color.MistyRose;
+                    Table9Button.BackColor = color;
                     break;
                 case 10:
-                    Table10Button.BackColor = Color.MistyRose;
+                    Table10Button.BackColor = color;
                     break;
                 default:
-                    MessageBox.Show("Error: Table number not found.");
                     break;
             }
         }
 
         private void ChangeCurrentTableButtonColorWhenTableFreed()
         {
+            var color = Color.LightGreen;
+
             switch (currentTable.Number)
             {
                 case 1:
-                    Table1Button.BackColor = Color.LightGreen;
+                    Table1Button.BackColor = color;
                     break;
                 case 2:
-                    Table2Button.BackColor = Color.LightGreen;
+                    Table2Button.BackColor = color;
                     break;
                 case 3:
-                    Table3Button.BackColor = Color.LightGreen;
+                    Table3Button.BackColor = color;
                     break;
                 case 4:
-                    Table4Button.BackColor = Color.LightGreen;
+                    Table4Button.BackColor = color;
                     break;
                 case 5:
-                    Table5Button.BackColor = Color.LightGreen;
+                    Table5Button.BackColor = color;
                     break;
                 case 6:
-                    Table6Button.BackColor = Color.LightGreen;
+                    Table6Button.BackColor = color;
                     break;
                 case 7:
-                    Table7Button.BackColor = Color.LightGreen;
+                    Table7Button.BackColor = color;
                     break;
                 case 8:
-                    Table8Button.BackColor = Color.LightGreen;
+                    Table8Button.BackColor = color;
                     break;
                 case 9:
-                    Table9Button.BackColor = Color.LightGreen;
+                    Table9Button.BackColor = color;
                     break;
                 case 10:
-                    Table10Button.BackColor = Color.LightGreen;
+                    Table10Button.BackColor = color;
                     break;
                 default:
-                    MessageBox.Show("Error: Table number not found.");
                     break;
             }
         }
@@ -825,7 +774,6 @@ namespace Restaurant_System
                     Table10Button.Font = font;
                     break;
                 default:
-                    MessageBox.Show("Error: table number not found");
                     break;
             }
         }
@@ -833,6 +781,7 @@ namespace Restaurant_System
         private void ResetButtonFont()
         {
             var font = new Font("Segoe UI", 9, FontStyle.Regular);
+
             switch (currentTable.Number)
             {
                 case 1:
@@ -866,7 +815,6 @@ namespace Restaurant_System
                     Table10Button.Font = font;
                     break;
                 default:
-                    MessageBox.Show("Error: table number not found");
                     break;
             }
         }
@@ -942,14 +890,14 @@ namespace Restaurant_System
         {
             if (ChequeViaEmailForCustomerCheckBox.Checked)
             {
-                _senderViaEmail.SendChequeViaEmail(CustomerEmailAddressTextBox.Text);
+                _emailServices.SendChequeViaEmail(CustomerEmailAddressTextBox.Text);
                 MessageBox.Show("Cheque for customer sent!");
                 CustomerEmailAddressTextBox.Text = "";
             }
 
             if (ChequeViaEmailForRestaurantCheckBox.Checked)
             {
-                _senderViaEmail.SendChequeViaEmail(RestaurantEmailAddressTextBox.Text);
+                _emailServices.SendChequeViaEmail(RestaurantEmailAddressTextBox.Text);
                 MessageBox.Show("Cheque for Restaurant sent!");
                 CustomerEmailAddressTextBox.Text = "";
             }
@@ -959,7 +907,7 @@ namespace Restaurant_System
         {
             string restaurantChequeFilePath = @$"..\..\..\..\DataFiles\Cheques\RestaurantCheques\RestaurantCheque.Table{currentTable.Number}.{DateTime.Now.Ticks / (decimal)TimeSpan.TicksPerMillisecond}";
 
-            IRestaurantChequePaymentWithCard _rcpwc = new RestaurantChequePaymentWithCard("AB NomNom", 55198165, "Vilnius, Kauno g. 20", "LT100003578563", DateTime.Now, orders[0].OrderedProducts, orders[0].TotalAmount, "Payment with card", $"{currentEmployee.FirstName} {currentEmployee.LastName}");
+            _rcpwc = new RestaurantChequePaymentWithCard("AB NomNom", 55198165, "Vilnius, Kauno g. 20", "LT100003578563", DateTime.Now, orders[0].OrderedProducts, orders[0].TotalAmount, "Payment with card", $"{currentEmployee.FirstName} {currentEmployee.LastName}");
 
             _rcpwc.PrintRestaurantChequeToTxtFile(restaurantChequeFilePath);
         }
@@ -968,7 +916,7 @@ namespace Restaurant_System
         {
             string customerChequeFilePath = @$"..\..\..\..\DataFiles\Cheques\CustomerCheques\CustomerCheque.Table{currentTable.Number}.{DateTime.Now.Ticks / (decimal)TimeSpan.TicksPerMillisecond}";
 
-            ICustomerChequePaymentWithCard _ccpwc = new CustomerChequePaymentWithCard("AB NomNom", 55198165, "Vilnius, Kauno g. 20", "LT100003578563", DateTime.Now, orders[0].OrderedProducts, orders[0].TotalAmount, "Payment with card", $"{currentEmployee.FirstName} {currentEmployee.LastName}", "with this check you will receive a 5% discount on the account on the next visit.");
+            _ccpwc = new CustomerChequePaymentWithCard("AB NomNom", 55198165, "Vilnius, Kauno g. 20", "LT100003578563", DateTime.Now, orders[0].OrderedProducts, orders[0].TotalAmount, "Payment with card", $"{currentEmployee.FirstName} {currentEmployee.LastName}", "with this check you will receive a 5% discount on the account on the next visit.");
 
             _ccpwc.PrintCustomerChequeToTxtFile(customerChequeFilePath);
         }
@@ -989,18 +937,18 @@ namespace Restaurant_System
         {
             string customerChequeFilePath = @$"..\..\..\..\DataFiles\Cheques\CustomerCheques\CustomerCheque.Table{currentTable.Number}.{DateTime.Now.Ticks / (decimal)TimeSpan.TicksPerMillisecond}";
 
-            ICustomerChequePaymentWithCash _ccpwc = new CustomerChequePaymentWithCash("AB NomNom", 55198165, "Vilnius, Kauno g. 20", "LT100003578563", DateTime.Now, orders[0].OrderedProducts, orders[0].TotalAmount, "Payment with cash", Math.Abs(orders[0].TotalAmount - Convert.ToDecimal(AmountReceivedTextBox.Text)), $"{currentEmployee.FirstName} {currentEmployee.LastName}", "with this check you will receive a 5% discount on the account on the next visit.", Convert.ToDecimal(AmountReceivedTextBox.Text));
+            _ccpwca = new CustomerChequePaymentWithCash("AB NomNom", 55198165, "Vilnius, Kauno g. 20", "LT100003578563", DateTime.Now, orders[0].OrderedProducts, orders[0].TotalAmount, "Payment with cash", Math.Abs(orders[0].TotalAmount - Convert.ToDecimal(AmountReceivedTextBox.Text)), $"{currentEmployee.FirstName} {currentEmployee.LastName}", "with this check you will receive a 5% discount on the account on the next visit.", Convert.ToDecimal(AmountReceivedTextBox.Text));
 
-            _ccpwc.PrintCustomerChequeToTxtFile(customerChequeFilePath);
+            _ccpwca.PrintCustomerChequeToTxtFile(customerChequeFilePath);
         }
 
         private void PrintRestaurantChequePaymentWithCash()
         {
             string restaurantChequeFilePath = @$"..\..\..\..\DataFiles\Cheques\RestaurantCheques\RestaurantCheque.Table{currentTable.Number}.{DateTime.Now.Ticks / (decimal)TimeSpan.TicksPerMillisecond}";
 
-            IRestaurantChequePaymentWithCash _rcpwc = new RestaurantChequePaymentWithCash("AB NomNom", 55198165, "Vilnius, Kauno g. 20", "LT100003578563", DateTime.Now, orders[0].OrderedProducts, orders[0].TotalAmount, "Payment with cash", $"{currentEmployee.FirstName} {currentEmployee.LastName}", Math.Abs(orders[0].TotalAmount - Convert.ToDecimal(AmountReceivedTextBox.Text)), Convert.ToDecimal(AmountReceivedTextBox.Text));
+            _rcpwca = new RestaurantChequePaymentWithCash("AB NomNom", 55198165, "Vilnius, Kauno g. 20", "LT100003578563", DateTime.Now, orders[0].OrderedProducts, orders[0].TotalAmount, "Payment with cash", $"{currentEmployee.FirstName} {currentEmployee.LastName}", Math.Abs(orders[0].TotalAmount - Convert.ToDecimal(AmountReceivedTextBox.Text)), Convert.ToDecimal(AmountReceivedTextBox.Text));
 
-            _rcpwc.PrintRestaurantChequeToTxtFile(restaurantChequeFilePath);
+            _rcpwca.PrintRestaurantChequeToTxtFile(restaurantChequeFilePath);
         }
     }
 }
