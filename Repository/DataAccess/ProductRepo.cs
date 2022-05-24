@@ -1,10 +1,8 @@
-﻿using Repository.Models;
-using System;
+﻿using Repository.DataAccess.Interfaces;
+using Repository.Models;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Repository.DataAccess
 {

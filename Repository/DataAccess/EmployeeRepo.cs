@@ -1,4 +1,5 @@
-﻿using Repository.Models;
+﻿using Repository.DataAccess.Interfaces;
+using Repository.Models;
 using System.Collections.Generic;
 
 namespace Repository.DataAccess

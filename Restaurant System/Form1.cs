@@ -1,13 +1,15 @@
 ﻿using Business.Services;
+using Business.Services.Interfaces;
 using Repository;
 using Repository.DataAccess;
+using Repository.DataAccess.Interfaces;
 using Repository.Models;
 using Repository.Models.Cheques;
+using Repository.Models.Cheques.Interfaces;
 using Repository.Serializer;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -29,14 +31,14 @@ namespace Restaurant_System
         private readonly IProductRepo _productRepo;
         private readonly ISerializer _serializer;
         private readonly IDeserializer _deserializer;
-        private FiscalCheque fiscalCheque;
+        private readonly ISenderViaEmail _senderViaEmail;
+        private IFiscalCheque _fiscalCheque;
         private readonly List<Employee> employees;
         private readonly List<Product> drinksList;
         private readonly List<Product> foodList;
         private List<Table> tableList;
         private List<Order> orders;
         private List<OrderProduct> orderedProductsList;
-        private List<FiscalCheque> fiscalChequeList;
         private Employee currentEmployee;
         private Table currentTable;
 
@@ -52,6 +54,7 @@ namespace Restaurant_System
             _productRepo = new ProductRepo();
             _serializer = new Serializer();
             _deserializer = new Deserializer();
+            _senderViaEmail = new SenderViaEmail();
             drinksList = _productRepo.RetrieveProducts(drinksListFilePath, false);
             foodList = _productRepo.RetrieveProducts(foodListFilePath);
             CreateTables();
@@ -59,7 +62,6 @@ namespace Restaurant_System
             ShowOccupiedTables();
             orderedProductsList = new List<OrderProduct>();
             orders = new List<Order>();
-            fiscalChequeList = new List<FiscalCheque>();
         }
 
         private void ChangeLoginPosition()
@@ -102,6 +104,7 @@ namespace Restaurant_System
                     ChangeCurrentTableButtonColorWhenTableOccupied();
                 }
             }
+            currentTable = null;
         }
 
         private void Table1Button_Click(object sender, EventArgs e)
@@ -310,6 +313,12 @@ namespace Restaurant_System
             ExecutePaymentButton.Visible = true;
             TotalAmountLabel.Visible = true;
             TotalAmountTextBox.Visible = true;
+            ChequeViaEmailForCustomerCheckBox.Visible = true;
+            CustomerEmailAddressLabel.Visible = true;
+            CustomerEmailAddressTextBox.Visible = true;
+            RestaurantEmailAddressLabel.Visible = true;
+            RestaurantEmailAddressTextBox.Visible = true;
+            ChequeViaEmailForRestaurantCheckBox.Visible = true;
         }
 
         private void FillDrinksList()
@@ -478,7 +487,6 @@ namespace Restaurant_System
 
             orderedProductsList.Clear();
             orders.Clear();
-            fiscalChequeList.Clear();
 
             MessageBox.Show("Success! Order sent to kitchen.");
         }
@@ -520,16 +528,25 @@ namespace Restaurant_System
 
         private void FreeUpTableButton_Click_1(object sender, EventArgs e)
         {
+            FreeUpTheTable();
+        }
+
+        private void FreeUpTheTable()
+        {
             if (CheckIfTableIsNotSelected()) return;
 
             currentTable.Occupied = false;
 
             OrderedProductsListBox.Items.Clear();
             TotalAmountTextBox.Clear();
-            TotalAmountTextBox.Clear();
             orderedProductsList.Clear();
             orders.Clear();
-            File.Delete(GetFilePathByCurrentTable());
+
+            if (File.Exists(GetFilePathByCurrentTable()))
+            {
+                File.Delete(GetFilePathByCurrentTable());
+            }
+            
             ChangeCurrentTableButtonColorWhenTableFreed();
         }
 
@@ -616,11 +633,13 @@ namespace Restaurant_System
         {
             if (isFood)
             {
-                FoodQuantityTextBox.Text = "1";
+                foodQuantityCounter = 1;
+                FoodQuantityTextBox.Text = foodQuantityCounter.ToString();
             }
             else
             {
-                DrinkQuantityTextBox.Text = "1";
+                drinkQuantityCounter = 1;
+                DrinkQuantityTextBox.Text = drinkQuantityCounter.ToString();
             }
 
             TotalAmountTextBox.Clear();
@@ -854,15 +873,20 @@ namespace Restaurant_System
 
         private void PrintFiscalCheque()
         {
-            string fiscalChequeFilePath = @$"..\..\..\..\DataFiles\Cheques\fiscalCheque{DateTime.Now.Ticks / (decimal)TimeSpan.TicksPerMillisecond}";
+            string fiscalChequeFilePath = @$"..\..\..\..\DataFiles\Cheques\FiscalCheques\fiscalCheque.Table{currentTable.Number}.{DateTime.Now.Ticks / (decimal)TimeSpan.TicksPerMillisecond}";
 
-            fiscalCheque = new FiscalCheque("Fiskalinis", "AB NomNom", 55198165, "Vilnius, Kauno g. 20", "LT100003578563", DateTime.Now, orders[0].OrderedProducts, orders[0].TotalAmount, $"{currentEmployee.FirstName} {currentEmployee.LastName}");
+            _fiscalCheque = new FiscalCheque("--- Fiscal Cheque ---", "AB NomNom", 55198165, "Vilnius, Kauno g. 20", "LT100003578563", DateTime.Now, orders[0].OrderedProducts, orders[0].TotalAmount, $"{currentEmployee.FirstName} {currentEmployee.LastName}");
 
-            fiscalCheque.PrintFiscalChequeToTxtFile(fiscalChequeFilePath);
+            _fiscalCheque.PrintFiscalChequeToTxtFile(fiscalChequeFilePath);
         }
 
         private void ExecutePaymentButton_Click(object sender, EventArgs e)
         {
+            if (CheckIfTableIsNotSelected()) return;
+            CheckIfFileExists();
+            if (CheckIfOrdersNotExists()) return;
+            if (CheckIfOrderNotConfirmed()) return;
+
             if (CardRadioButton.Checked)
             {
                 ExecutePaymentWithCard();
@@ -877,14 +901,106 @@ namespace Restaurant_System
             }
         }
 
+        private bool CheckIfOrderNotConfirmed()
+        {
+            if (orderedProductsList.Count > 0 && orders.Count < 1)
+            {
+                MessageBox.Show("Error: the order has not been confirmed.");
+                return true;
+            }
+            return false;
+        }
+
         private void ExecutePaymentWithCard()
         {
+            if (CustomerChequeCheckBox.Checked)
+            {
+                PrintCustomerChequePaymentWithCard();
+            }
 
+            SendViaEmailsIfChecked();
+            PrintRestaurantChequePaymentWithCard();
+            GreetAndReset();
+        }
+
+        private void GreetAndReset()
+        {
+            MessageBox.Show("Succes! Payment accepted.");
+            currentTable.Freed = DateTime.Now;
+            CardRadioButton.Checked = false;
+            CashRadioButton.Checked = false;
+            CustomerChequeCheckBox.Checked = false;
+            ChequeViaEmailForCustomerCheckBox.Checked = false;
+            ChequeViaEmailForRestaurantCheckBox.Checked = false;
+            AmountReceivedTextBox.Text = "";
+            FreeUpTheTable();
+            ResetButtonFont();
+            currentTable = null;
+        }
+
+        private void SendViaEmailsIfChecked()
+        {
+            if (ChequeViaEmailForCustomerCheckBox.Checked)
+            {
+                _senderViaEmail.SendChequeViaEmail(CustomerEmailAddressTextBox.Text);
+                MessageBox.Show("Cheque for customer sent!");
+                CustomerEmailAddressTextBox.Text = "";
+            }
+
+            if (ChequeViaEmailForRestaurantCheckBox.Checked)
+            {
+                _senderViaEmail.SendChequeViaEmail(RestaurantEmailAddressTextBox.Text);
+                MessageBox.Show("Cheque for Restaurant sent!");
+                CustomerEmailAddressTextBox.Text = "";
+            }
+        }
+
+        private void PrintRestaurantChequePaymentWithCard()
+        {
+            string restaurantChequeFilePath = @$"..\..\..\..\DataFiles\Cheques\RestaurantCheques\RestaurantCheque.Table{currentTable.Number}.{DateTime.Now.Ticks / (decimal)TimeSpan.TicksPerMillisecond}";
+
+            IRestaurantChequePaymentWithCard _rcpwc = new RestaurantChequePaymentWithCard("AB NomNom", 55198165, "Vilnius, Kauno g. 20", "LT100003578563", DateTime.Now, orders[0].OrderedProducts, orders[0].TotalAmount, "Payment with card", $"{currentEmployee.FirstName} {currentEmployee.LastName}");
+
+            _rcpwc.PrintRestaurantChequeToTxtFile(restaurantChequeFilePath);
+        }
+
+        private void PrintCustomerChequePaymentWithCard()
+        {
+            string customerChequeFilePath = @$"..\..\..\..\DataFiles\Cheques\CustomerCheques\CustomerCheque.Table{currentTable.Number}.{DateTime.Now.Ticks / (decimal)TimeSpan.TicksPerMillisecond}";
+
+            ICustomerChequePaymentWithCard _ccpwc = new CustomerChequePaymentWithCard("AB NomNom", 55198165, "Vilnius, Kauno g. 20", "LT100003578563", DateTime.Now, orders[0].OrderedProducts, orders[0].TotalAmount, "Payment with card", $"{currentEmployee.FirstName} {currentEmployee.LastName}", "with this check you will receive a 5% discount on the account on the next visit.");
+
+            _ccpwc.PrintCustomerChequeToTxtFile(customerChequeFilePath);
         }
 
         private void ExecutePaymentWithCash()
         {
+            if (CustomerChequeCheckBox.Checked)
+            {
+                PrintCustomerChequePaymentWithCash();
+            }
 
+            SendViaEmailsIfChecked();
+            PrintRestaurantChequePaymentWithCash();
+            GreetAndReset();
+        }
+
+        private void PrintCustomerChequePaymentWithCash()
+        {
+            string customerChequeFilePath = @$"..\..\..\..\DataFiles\Cheques\CustomerCheques\CustomerCheque.Table{currentTable.Number}.{DateTime.Now.Ticks / (decimal)TimeSpan.TicksPerMillisecond}";
+
+            ICustomerChequePaymentWithCash _ccpwc = new CustomerChequePaymentWithCash("AB NomNom", 55198165, "Vilnius, Kauno g. 20", "LT100003578563", DateTime.Now, orders[0].OrderedProducts, orders[0].TotalAmount, "Payment with cash", orders[0].TotalAmount - Convert.ToDecimal(AmountReceivedTextBox.Text), $"{currentEmployee.FirstName} {currentEmployee.LastName}", "with this check you will receive a 5% discount on the account on the next visit.", Convert.ToDecimal(AmountReceivedTextBox.Text));
+
+            _ccpwc.PrintCustomerChequeToTxtFile(customerChequeFilePath);
+        }
+
+        private void PrintRestaurantChequePaymentWithCash()
+        {
+            string restaurantChequeFilePath = @$"..\..\..\..\DataFiles\Cheques\RestaurantCheques\RestaurantCheque.Table{currentTable.Number}.{DateTime.Now.Ticks / (decimal)TimeSpan.TicksPerMillisecond}";
+
+            IRestaurantChequePaymentWithCash _rcpwc = new RestaurantChequePaymentWithCash("AB NomNom", 55198165, "Vilnius, Kauno g. 20", "LT100003578563", DateTime.Now, orders[0].OrderedProducts, orders[0].TotalAmount, "Payment with cash", $"{currentEmployee.FirstName} {currentEmployee.LastName}", orders[0].TotalAmount - Convert.ToDecimal(AmountReceivedTextBox.Text), Convert.ToDecimal(AmountReceivedTextBox.Text));
+
+            _rcpwc.PrintRestaurantChequeToTxtFile(restaurantChequeFilePath);
         }
     }
 }

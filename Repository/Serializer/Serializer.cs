@@ -23,24 +23,8 @@ namespace Repository.Serializer
             string jsonString = JsonSerializer.Serialize(ordersList, options);
             File.WriteAllText(filePath, jsonString);
         }
-
-        public void WriteFiscalChequeToFile(List<FiscalCheque> fiscalChequesList, string filePath)
-        {
-            if (!Directory.Exists(Path.GetDirectoryName(filePath)))
-            {
-                Directory.CreateDirectory(Path.GetDirectoryName(filePath));
-            }
-
-            var options = new JsonSerializerOptions
-            {
-                WriteIndented = true
-            };
-
-            string jsonString = JsonSerializer.Serialize(fiscalChequesList, options);
-            File.WriteAllText(filePath, jsonString);
-        }
-
-        public void WriteChequePaymentWithCardToFile(List<ChequePaymentWithCard> chequePaymentWithCardList, string filePath)
+        
+        public void WriteChequePaymentWithCardToFile(List<CustomerChequePaymentWithCard> chequePaymentWithCardList, string filePath)
         {
             if (!Directory.Exists(Path.GetDirectoryName(filePath)))
             {
@@ -56,7 +40,7 @@ namespace Repository.Serializer
             File.WriteAllText(filePath, jsonString);
         }
 
-        public void WriteChequePaymentWithCashToFile(List<ChequePaymentWithCash> chequePaymentWithCashList, string filePath)
+        public void WriteChequePaymentWithCashToFile(List<CustomerChequePaymentWithCash> chequePaymentWithCashList, string filePath)
         {
             if (!Directory.Exists(Path.GetDirectoryName(filePath)))
             {

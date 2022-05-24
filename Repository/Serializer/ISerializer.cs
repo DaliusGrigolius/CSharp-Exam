@@ -6,9 +6,8 @@ namespace Repository.Serializer
 {
     public interface ISerializer
     {
-        void WriteChequePaymentWithCardToFile(List<ChequePaymentWithCard> chequePaymentWithCardList, string filePath);
-        void WriteChequePaymentWithCashToFile(List<ChequePaymentWithCash> chequePaymentWithCashList, string filePath);
-        void WriteFiscalChequeToFile(List<FiscalCheque> fiscalChequesList, string filePath);
+        void WriteChequePaymentWithCardToFile(List<CustomerChequePaymentWithCard> chequePaymentWithCardList, string filePath);
+        void WriteChequePaymentWithCashToFile(List<CustomerChequePaymentWithCash> chequePaymentWithCashList, string filePath);
         void WriteOrderDataToFile(List<Order> ordersList, string filePath);
     }
 }

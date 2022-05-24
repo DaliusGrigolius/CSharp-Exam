@@ -1,7 +1,7 @@
 ﻿using Repository.Models;
 using System.Collections.Generic;
 
-namespace Business.Services
+namespace Business.Services.Interfaces
 {
     public interface IEmployeeService
     {

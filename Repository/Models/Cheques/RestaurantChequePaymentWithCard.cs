@@ -5,13 +5,12 @@ using System.IO;
 
 namespace Repository.Models.Cheques
 {
-    public class FiscalCheque : Cheque, IFiscalCheque
+    public class RestaurantChequePaymentWithCard : Cheque, IRestaurantChequePaymentWithCard
     {
-        public string FiscalText { get; set; }
+        public string MethodOfPayment { get; set; }
 
-        public FiscalCheque(string fiscalText, string companyName, int legalEntityCode, string address, string vATRegistrationNumber, DateTime printTime, List<OrderProduct> orderedProductsList, decimal amountToPay, string servicedPerson)
+        public RestaurantChequePaymentWithCard(string companyName, int legalEntityCode, string address, string vATRegistrationNumber, DateTime printTime, List<OrderProduct> orderedProductsList, decimal amountToPay, string methodOfPayment, string servicedPerson)
         {
-            FiscalText = fiscalText;
             CompanyName = companyName;
             LegalEntityCode = legalEntityCode;
             Address = address;
@@ -19,14 +18,15 @@ namespace Repository.Models.Cheques
             PrintTime = printTime;
             OrderedProductsList = orderedProductsList;
             AmountToPay = amountToPay;
+            MethodOfPayment = methodOfPayment;
             ServicedPerson = servicedPerson;
         }
 
-        public void PrintFiscalChequeToTxtFile(string fiscalChequeFilePath)
+        public void PrintRestaurantChequeToTxtFile(string customerChequeFilePath)
         {
-            if (!Directory.Exists(Path.GetDirectoryName(fiscalChequeFilePath)))
+            if (!Directory.Exists(Path.GetDirectoryName(customerChequeFilePath)))
             {
-                Directory.CreateDirectory(Path.GetDirectoryName(fiscalChequeFilePath));
+                Directory.CreateDirectory(Path.GetDirectoryName(customerChequeFilePath));
             }
 
             string text = $"{CompanyName}\r\nPVM: {LegalEntityCode}\r\n{Address}\r\n{VATRegistrationNumber}\r\n{PrintTime}\r\n\r\nProducts List:\r\n\r\n";
@@ -35,9 +35,9 @@ namespace Repository.Models.Cheques
             {
                 text += $"\"{x.Product.Name}\" {x.Product.CurrentPrice}Eu X {x.Quantity}\r\n";
             }
-            text += $"\r\nTOTAL: {AmountToPay}Eu\r\n\r\nWaiter/Waitress: {ServicedPerson}\r\n{FiscalText}\r\n";
+            text += $"\r\nTOTAL: {AmountToPay}Eu\r\n{MethodOfPayment}\r\n\r\nWaiter/Waitress: {ServicedPerson}\r\n";
 
-            File.WriteAllText(fiscalChequeFilePath, text);
+            File.WriteAllText(customerChequeFilePath, text);
         }
     }
 }
